@@ -629,8 +629,13 @@ function setEventListeners( canvas ){
 	};     
 
 	document.getElementById("text-file").onchange = function(){
+		webGLTexture = gl.createTexture();
+		webGLTexture.image = new Image();
+		webGLTexture.image.onload = function () {
+			handleLoadedTexture(webGLTexture)
+		}
 		var file = this.files[0];
-		webGLTexture.image.src = file;
+		webGLTexture.image.src = file["name"];
 	};
 
 

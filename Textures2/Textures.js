@@ -330,10 +330,6 @@ function drawScene() {
 		pMatrix = ortho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
 		
 		tz = 0;
-		
-		// TO BE DONE !
-		
-		// Allow the user to control the size of the view volume
 	}
 	else {	
 
@@ -440,50 +436,6 @@ function handleKeys() {
 		sx *= 1.1;
 		
 		sz = sy = sx;
-	}
-	if (currentlyPressedKeys[37]) {
-		
-		// Left cursor key
-		
-		if( rotationYY_ON == 0 ) {
-			
-			rotationYY_ON = 1;
-		}  
-		
-		rotationYY_SPEED -= 0.25;
-	}
-	if (currentlyPressedKeys[39]) {
-		
-		// Right cursor key
-		
-		if( rotationYY_ON == 0 ) {
-			
-			rotationYY_ON = 1;
-		}  
-		
-		rotationYY_SPEED += 0.25;
-	}
-	if (currentlyPressedKeys[38]) {
-		
-		// Up cursor key
-		
-		if( rotationXX_ON == 0 ) {
-			
-			rotationXX_ON = 1;
-		}  
-		
-		rotationXX_SPEED -= 0.25;
-	}
-	if (currentlyPressedKeys[40]) {
-		
-		// Down cursor key
-		
-		if( rotationXX_ON == 0 ) {
-			
-			rotationXX_ON = 1;
-		}  
-		
-		rotationXX_SPEED += 0.25;
 	}
 }
 

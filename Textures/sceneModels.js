@@ -48,11 +48,11 @@ function emptyModelFeatures() {
 	
 	// Animation controls
 	
-	this.rotXXOn = true;
+	this.rotXXOn = false;
 	
-	this.rotYYOn = true;
+	this.rotYYOn = false;
 	
-	this.rotZZOn = true;
+	this.rotZZOn = false;
 	
 	this.rotXXSpeed = 1.0;
 	

@@ -49,6 +49,10 @@ var globalRotationXX_SPEED = 1;
 // To allow choosing the way of drawing the model triangles
 
 var primitiveType = null;
+
+//To save the texture values
+
+var textures = [sceneModels,sceneModels];
  
 // To allow choosing the projection type
 
@@ -269,10 +273,6 @@ function drawScene() {
 		pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[3] = 0.0;
 		
 		pos_Viewer[2] = 1.0;  
-		
-		// TO BE DONE !
-		
-		// Allow the user to control the size of the view volume
 	}
 	else {	
 
@@ -293,10 +293,6 @@ function drawScene() {
 		pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[2] = 0.0;
 		
 		pos_Viewer[3] = 1.0;  
-		
-		// TO BE DONE !
-		
-		// Allow the user to control the size of the view volume
 	}
 	
 	// Passing the Projection Matrix to apply the current projection
@@ -325,14 +321,26 @@ function drawScene() {
 		var lightSourceMatrix = mat4();
 
 		if( !lightSources[i].isOff() ) {
-				
-			// COMPLETE THE CODE FOR THE OTHER ROTATION AXES
 
 			if( lightSources[i].isRotYYOn() ) 
 			{
 				lightSourceMatrix = mult( 
 						lightSourceMatrix, 
 						rotationYYMatrix( lightSources[i].getRotAngleYY() ) );
+			}
+
+			if( lightSources[i].isRotXXOn() ) 
+			{
+				lightSourceMatrix = mult( 
+						lightSourceMatrix, 
+						rotationXXMatrix( lightSources[i].getRotAngleXX() ) );
+			}
+
+			if( lightSources[i].isRotZZOn() ) 
+			{
+				lightSourceMatrix = mult( 
+						lightSourceMatrix, 
+						rotationZZMatrix( lightSources[i].getRotAngleZZ() ) );
 			}
 		}
 		
@@ -388,7 +396,7 @@ function animate() {
 
 		// For every model --- Local rotations
 		
-		/*for(var i = 0; i < sceneModels.length; i++ )
+		for(var i = 0; i < sceneModels.length; i++ )
 	    {
 			if( sceneModels[i].rotXXOn ) {
 
@@ -404,7 +412,7 @@ function animate() {
 
 				sceneModels[i].rotAngleZZ += sceneModels[i].rotZZDir * sceneModels[i].rotZZSpeed * (90 * elapsed) / 1000.0;
 			}
-		}*/
+		}
 		
 		// Rotating the light sources
 	
@@ -416,10 +424,60 @@ function animate() {
 		
 				lightSources[i].setRotAngleYY( angle );
 			}
+
+			if( lightSources[i].isRotXXOn() ) {
+
+				var angle = lightSources[i].getRotAngleXX() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
+		
+				lightSources[i].setRotAngleXX( angle );
+			}
+
+			if( lightSources[i].isRotZZOn() ) {
+
+				var angle = lightSources[i].getRotAngleZZ() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
+		
+				lightSources[i].setRotAngleZZ( angle );
+			}
 		}
 }
 	
 	lastTime = timeNow;
+}
+
+//----------------------------------------------------------------------------
+
+// Handling keyboard events
+
+// Adapted from www.learningwebgl.com
+
+var currentlyPressedKeys = {};
+
+function handleKeys() {
+	
+	if (currentlyPressedKeys[33]) {
+		
+		// Page Up
+		
+		for (var i = 0; i < sceneModels.length; i++) {
+			sceneModels[i].sx *= 0.9;
+			
+			sceneModels[i].sz *= 0.9;
+
+			sceneModels[i].sy *= 0.9;
+		}
+	}
+	if (currentlyPressedKeys[34]) {
+		
+		// Page Down
+		
+		for (var i = 0; i < sceneModels.length; i++) {
+			sceneModels[i].sx *= 1.1;
+			
+			sceneModels[i].sz *= 1.1;
+
+			sceneModels[i].sy *= 1.1;
+		}
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -486,6 +544,8 @@ function handleMouseMove(event) {
 function tick() {
 	
 	requestAnimFrame(tick);
+
+	handleKeys();
 	
 	drawScene();
 	
@@ -515,6 +575,24 @@ function setEventListeners(canvas){
     document.onmouseup = handleMouseUp;
     
     document.onmousemove = handleMouseMove;
+
+    // NEW ---Handling the keyboard
+	
+	// From learningwebgl.com
+
+    function handleKeyDown(event) {
+		
+        currentlyPressedKeys[event.keyCode] = true;
+    }
+
+    function handleKeyUp(event) {
+		
+        currentlyPressedKeys[event.keyCode] = false;
+    }
+
+	document.onkeydown = handleKeyDown;
+    
+    document.onkeyup = handleKeyUp;
 	
     // Dropdown list
 	
@@ -534,7 +612,7 @@ function setEventListeners(canvas){
 			case 1 : projectionType = 1;
 				break;
 		}  	
-	});      
+	});    
 
 	// Dropdown list
 	
@@ -665,7 +743,11 @@ function setEventListeners(canvas){
 
 				break;
 
-		}  	
+		}
+		textures[0].kAmbi = sceneModels[0].kAmbi;
+		textures[0].kDiff = sceneModels[0].kDiff;
+		textures[0].kSpec = sceneModels[0].kSpec;
+		textures[0].nPhong = sceneModels[0].nPhong;
 	});  
 
 	var texture2 = document.getElementById("texture-mode-selection2");
@@ -774,42 +856,128 @@ function setEventListeners(canvas){
 
 				break;
 
-		}  	
+		}
+		textures[1].kAmbi = sceneModels[1].kAmbi;
+		textures[1].kDiff = sceneModels[1].kDiff;
+		textures[1].kSpec = sceneModels[1].kSpec;
+		textures[1].nPhong = sceneModels[1].nPhong; 	
 	}); 
+
+	document.getElementById("change-Size").onclick = function(){
+		var x = document.getElementById("frm1");
+		
+		for (var i = 0; i < sceneModels.length; i++) {
+			if(x.elements[0].value<=0.3 && x.elements[0].value>=0.0) sceneModels[i].sx = x.elements[0].value;
+			if(x.elements[1].value<=0.3 && x.elements[1].value>=0.0) sceneModels[i].sy = x.elements[1].value;
+			if(x.elements[2].value<=0.3 && x.elements[2].value>=0.0) sceneModels[i].sz = x.elements[2].value;
+		}
+	}
+
+	document.getElementById("change-pos").onclick = function(){
+		var x = document.getElementById("frm2");
+		
+		for (var i = 0; i < lightSources.length; i++) {
+			if(x.elements[0].value<=10.0 && x.elements[0].value>=-10.0) lightSources[i].position[0] = x.elements[0].value;
+			if(x.elements[1].value<=10.0 && x.elements[1].value>=-10.0) lightSources[i].position[1] = x.elements[1].value;
+			if(x.elements[2].value<=10.0 && x.elements[2].value>=-10.0) lightSources[i].position[2] = x.elements[2].value;
+		}
+	}  
+
+	document.getElementById("orotx-button").onclick = function(){
+		
+		for (var i = 0; i <sceneModels.length; i++) {
+			if(sceneModels[i].rotXXOn) sceneModels[i].rotXXOn=false;
+			else sceneModels[i].rotXXOn = true;
+		}
+	};
+
+	document.getElementById("oroty-button").onclick = function(){
+		
+		for (var i = 0; i <sceneModels.length; i++) {	
+			if(sceneModels[i].rotYYOn) sceneModels[i].rotYYOn=false;
+			else sceneModels[i].rotYYOn = true;
+		}
+	};
+
+	document.getElementById("orotz-button").onclick = function(){
+		
+		for (var i = 0; i <sceneModels.length; i++) {
+			if(sceneModels[i].rotZZOn) sceneModels[i].rotZZOn=false;
+			else sceneModels[i].rotZZOn = true;
+		}
+	};  
+
+
+	document.getElementById("lrotx-button").onclick = function(){
+		
+		for (var i = 0; i <lightSources.length; i++) {
+			if(lightSources[i].rotXXOn) lightSources[i].rotXXOn=false;
+			else lightSources[i].rotXXOn = true;
+		}
+	};
+
+	document.getElementById("lroty-button").onclick = function(){
+		
+		for (var i = 0; i <lightSources.length; i++) {	
+			if(lightSources[i].rotYYOn) lightSources[i].rotYYOn=false;
+			else lightSources[i].rotYYOn = true;
+		}
+	};
+
+	document.getElementById("lrotz-button").onclick = function(){
+		
+		for (var i = 0; i <lightSources.length; i++) {
+			if(lightSources[i].rotZZOn) lightSources[i].rotZZOn=false;
+			else lightSources[i].rotZZOn = true;
+		}
+	};   
 
 	document.getElementById("cube-button").onclick = function(){
 				
 		// CUBE
 		var pos = -0.5;
 		for(var i = 0; i < sceneModels.length; i++ ){
-					sceneModels[i]=cubeModel();
+			sceneModels[i]=cubeModel();
 
-					sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
+			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
 
-					sceneModels[i].tz = 0.0;
+			sceneModels[i].tz = 0.0;
 
-					sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
+			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
 
-					pos+= 1.0;
-				}
+			pos+= 1.0;
+		}
+
+		for (var i = 0; i < sceneModels.length; i++) {
+		  	sceneModels[i].kAmbi = textures[i].kAmbi;
+			sceneModels[i].kDiff = textures[i].kDiff;
+			sceneModels[i].kSpec = textures[i].kSpec;
+			sceneModels[i].nPhong = textures[i].nPhong;
+		}
 			
-	};      
+	};     
 
 	document.getElementById("sphere-button").onclick = function(){
 				
 		// SPHERE
 		var pos = -0.5;
 		for(var i = 0; i < sceneModels.length; i++ ){
-					sceneModels[i]=sphereModel();
+			sceneModels[i]=sphereModel();
 
-					sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
+			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
 
-					sceneModels[i].tz = 0.0;
+			sceneModels[i].tz = 0.0;
 
-					sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
+			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
 
-					pos+= 1.0;
-				}
+			pos+= 1.0;
+		}
+		for (var i = 0; i < sceneModels.length; i++) {
+		  	sceneModels[i].kAmbi = textures[i].kAmbi;
+			sceneModels[i].kDiff = textures[i].kDiff;
+			sceneModels[i].kSpec = textures[i].kSpec;
+			sceneModels[i].nPhong = textures[i].nPhong;
+		}
 	};      
 
 	document.getElementById("rectangle-button").onclick = function(){
@@ -817,16 +985,22 @@ function setEventListeners(canvas){
 		// RECTANGLE
 		var pos = -0.5;
 		for(var i = 0; i < sceneModels.length; i++ ){
-					sceneModels[i]=cubeModel();
+			sceneModels[i]=cubeModel();
 
-					sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
+			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
 
-					sceneModels[i].tz = 0.0;
+			sceneModels[i].tz = 0.0;
 
-					sceneModels[i].sx = 0.35; sceneModels[i].sy = sceneModels[i].sz = 0.25;
-
-					pos+= 1.0;
-				}
+			sceneModels[i].sx = 0.35; sceneModels[i].sy = sceneModels[i].sz = 0.25;
+		
+			pos+= 1.0;
+		}
+		for (var i = 0; i < sceneModels.length; i++) {
+		  	sceneModels[i].kAmbi = textures[i].kAmbi;
+			sceneModels[i].kDiff = textures[i].kDiff;
+			sceneModels[i].kSpec = textures[i].kSpec;
+			sceneModels[i].nPhong = textures[i].nPhong;
+		}
 	};      
 
 	document.getElementById("tetrahedron-button").onclick = function(){
@@ -834,16 +1008,22 @@ function setEventListeners(canvas){
 		// TETRAHEDRON
 		var pos = -0.5;
 		for(var i = 0; i < sceneModels.length; i++ ){
-					sceneModels[i]=tetrahedronModel();
+			sceneModels[i]=tetrahedronModel();
 
-					sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
+			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
 
-					sceneModels[i].tz = 0.0;
+			sceneModels[i].tz = 0.0;
 
-					sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
+			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
 
-					pos+= 1.0;
-				}
+			pos+= 1.0;
+		}
+		for (var i = 0; i < sceneModels.length; i++) {
+		  	sceneModels[i].kAmbi = textures[i].kAmbi;
+			sceneModels[i].kDiff = textures[i].kDiff;
+			sceneModels[i].kSpec = textures[i].kSpec;
+			sceneModels[i].nPhong = textures[i].nPhong;
+		}
 		  	
 	};      
  
@@ -855,7 +1035,7 @@ function setEventListeners(canvas){
 //----------------------------------------------------------------------------
 //
 // WebGL Initialization
-//
+//	
 
 function initWebGL( canvas ) {
 	try {

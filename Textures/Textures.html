@@ -241,7 +241,7 @@ The fragment shader is the same simple one.
 		
 		<p>Model With LightSources and Texture Menu</p>
 		
-		<canvas id="my-canvas" style="border:1px solid #000000;" width="700" height="700"></canvas>
+		<canvas id="my-canvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
 		
 		<!-- NEW --- To show the number of frames per second -->
 		
@@ -287,8 +287,6 @@ The fragment shader is the same simple one.
 	    	</p>
 	    </div>
 
-        <p>
-
 		<p>Choose the <b>rendering mode</b>:
 		
         <select id="rendering-mode-selection">
@@ -296,6 +294,8 @@ The fragment shader is the same simple one.
 			<option value="1">Wireframe</option>
 			<option value="2">Vertices</option>
         </select>
+
+    	</p>
 		
 		<p>Choose the <b>projection type</b>:
 		
@@ -305,6 +305,8 @@ The fragment shader is the same simple one.
         </select>
         
         </p>
+
+        <p>
 		
 		<button id="cube-button">Cube</button>
 		<button id="sphere-button">Sphere</button>
@@ -312,6 +314,46 @@ The fragment shader is the same simple one.
 		<button id="tetrahedron-button">Tetrahedron</button>
 		
 		</p>
+
+		<p>
+		Object Rotation<br>
+		<button id="orotx-button">Rotation X On/Off</button>
+		<button id="oroty-button">Rotation Y On/Off</button>
+		<button id="orotz-button">Rotation Z On/Off</button>
+		
+		</p>
+
+		<p>
+		Light Source Rotation<br>
+		<button id="lrotx-button">Rotation X On/Off</button>
+		<button id="lroty-button">Rotation Y On/Off</button>
+		<button id="lrotz-button">Rotation Z On/Off</button>
+		
+		</p>
+
+		<p>
+			<form id="frm1">
+				Object Sizes<br>
+	  			Size X: <input type="text"><br>
+	  			Size Y: <input type="text"><br>
+	  			Size Z: <input type="text"><br>
+	  			Sizes must be within [0.0 , 0.3].<br>
+	  			<br>
+	  		</form>
+	  		<button id="change-Size">Submit</button>
+		</p> 
+
+		<p>
+			<form id="frm2">
+				LightSource Position<br>
+	  			Pos X: <input type="text"><br>
+	  			Pos Y: <input type="text"><br>
+	  			Pos Z: <input type="text"><br>
+	  			Positions must be within [-10.0 , 10.0].<br>
+	  			<br>
+	  		</form>
+	  		<button id="change-pos">Submit</button>
+		</p> 
 
 
         				

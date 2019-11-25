@@ -271,7 +271,8 @@ function initTexture() {
 		handleLoadedTexture(webGLTexture)
 	}
 
-	webGLTexture.image.src = "NeHe.gif";
+	webGLTexture.image.crossOrigin = "";
+	webGLTexture.image.src = "https://webglfundamentals.org/webgl/resources/f-texture.png";
 }
 
 //----------------------------------------------------------------------------
@@ -651,13 +652,13 @@ function setEventListeners( canvas ){
 	}; 
 
 	document.getElementById("text-file").onchange = function(){
-		webGLTexture = gl.createTexture();
-		webGLTexture.image = new Image();
-		webGLTexture.image.onload = function () {
-			handleLoadedTexture(webGLTexture)
-		}
 		var file = this.files[0];
 		webGLTexture.image.src = file["name"];
+	};
+
+	document.getElementById("link-src").onclick = function(){
+		var x = document.getElementById("frm3");
+		console.log(x.elements);
 	};
 
 

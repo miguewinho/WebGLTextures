@@ -81,6 +81,10 @@ var primitiveType = null;
 // To allow choosing the projection type
 
 var projectionType = 0;
+
+//Blending Flag
+
+var blendisOn = false;
  
 // From learningwebgl.com
 
@@ -297,6 +301,14 @@ function drawModel( angleXX, angleYY, angleZZ,
     gl.bindTexture(gl.TEXTURE_2D, webGLTexture);
         
     gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+    // NEW --- Blending
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+           
+    var alpha = 0.5;
+           
+    gl.uniform1f(shaderProgram.alphaUniform, alpha);
     
     // The vertex indices
     
@@ -633,6 +645,63 @@ function setEventListeners( canvas ){
 			
 			rotationZZ_ON = 1;
 		}  
+	};
+
+	document.getElementById("blend-button").onclick = function(){
+		if(!blendisOn){
+	    	gl.disable( gl.DEPTH_TEST );
+
+	    	gl.enable( gl.BLEND );
+
+	    	blendisOn = true;
+
+	    }else{
+	    	gl.disable(gl.BLEND);
+
+	    	gl.enable( gl.DEPTH_TEST );
+
+	    	blendisOn = false;
+	    }
+	};
+
+	document.getElementById("reset-button").onclick = function(){
+		// The initial values
+
+		tx = 0.0;
+
+		ty = 0.0;
+
+		tz = 0.0;
+
+		angleXX = 0.0;
+
+		angleYY = 0.0;
+
+		angleZZ = 0.0;
+
+		sx = 0.25;
+
+		sy = 0.25;
+
+		sz = 0.25;
+		
+		rotationXX_ON = 0;
+		
+		rotationXX_DIR = 1;
+		
+		rotationXX_SPEED = 1;
+
+		rotationYY_ON = 0;
+		
+		rotationYY_DIR = 1;
+		
+		rotationYY_SPEED = 1;
+
+		rotationZZ_ON = 0;
+		
+		rotationZZ_DIR = 1;
+		
+		rotationZZ_SPEED = 1;
 	};
 }
 

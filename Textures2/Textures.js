@@ -85,6 +85,14 @@ var projectionType = 0;
 //Blending Flag
 
 var blendisOn = false;
+
+//NxN repetition per face
+
+var numberoftextures=1;
+
+//Number of faces
+
+var facesnum=6;
  
 // From learningwebgl.com
 
@@ -126,6 +134,45 @@ vertices = [
             -1.0, -1.0,  1.0,
             -1.0,  1.0,  1.0,
             -1.0,  1.0, -1.0
+];
+
+var textureCoords2 = [
+
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+
+          // Back face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Top face
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+
+          // Bottom face
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          // Right face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Left face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
 ];
 
 // Texture coordinates for the quadrangular faces
@@ -373,15 +420,7 @@ function drawScene() {
 	
 	drawModel( -angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
-	           tx + 0.5, ty, tz,
-	           mvMatrix,
-	           primitiveType );
-	           	       
-	// Instance 2 --- LEFT TOP
-	
-	drawModel( -angleXX, -angleYY, -angleZZ,  // CW rotations
-	           sx, sy, sz,
-	           tx - 0.5, ty, tz,
+	           tx, ty, tz,
 	           mvMatrix,
 	           primitiveType );
 	           
@@ -439,7 +478,9 @@ function handleKeys() {
 		
 		sx *= 0.9;
 		
-		sz = sy = sx;
+		sz *= 0.9;
+
+		sy *= 0.9;
 	}
 	if (currentlyPressedKeys[34]) {
 		
@@ -447,7 +488,9 @@ function handleKeys() {
 		
 		sx *= 1.1;
 		
-		sz = sy = sx;
+		sz *= 1.1;
+
+		sy *= 1.1;
 	}
 }
 
@@ -493,11 +536,11 @@ function handleMouseMove(event) {
 
     var deltaX = newX - lastMouseX;
     
-    angleYY += radians( 10 * deltaX  )
+    angleYY += radians( 50 * deltaX  )
 
     var deltaY = newY - lastMouseY;
     
-    angleXX += radians( 10 * deltaY  )
+    angleXX -= radians( 50 * deltaY  )
     
     lastMouseX = newX
     
@@ -590,7 +633,22 @@ function setEventListeners( canvas ){
 		if(x.elements[0].value<=0.3 && x.elements[0].value>=0.0) sx = x.elements[0].value;
 		if(x.elements[1].value<=0.3 && x.elements[1].value>=0.0) sy = x.elements[1].value;
 		if(x.elements[2].value<=0.3 && x.elements[2].value>=0.0) sz = x.elements[2].value;
-	};     
+	};   
+
+	document.getElementById("change-rep").onclick = function(){
+		var x = document.getElementById("frm2");
+		
+		textureCoords=[];
+		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftextures = x.elements[0].value;
+		for (var i = 0; i < 8*facesnum; i++) {
+			textureCoords[i]=textureCoords2[i]*numberoftextures;
+		}
+		cubeVertexTextureCoordBuffer = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer.itemSize = 2;
+	    cubeVertexTextureCoordBuffer.numItems = 24;	
+	}; 
 
 	document.getElementById("text-file").onchange = function(){
 		webGLTexture = gl.createTexture();
@@ -664,6 +722,68 @@ function setEventListeners( canvas ){
 	    }
 	};
 
+	var repetition = document.getElementById("repetition-selection");
+	
+	repetition.addEventListener("click", function(){
+				
+		// Getting the selection
+		
+		var p = repetition.selectedIndex;
+
+		textureCoords = [];
+				
+		switch(p){
+			
+			case 0 : 
+					facesnum=1;
+					for (var i = 0; i < 8; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}
+				break;
+			
+			case 1 : 
+					facesnum=2;
+					for (var i = 0; i < 16; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}	
+				break;
+
+			case 2 : 
+					facesnum=3;
+					for (var i = 0; i < 24; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}
+				break;
+
+			case 3 : 
+					facesnum=4;
+					for (var i = 0; i < 32; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}	
+				break;
+
+			case 4 : 
+					facesnum=5;
+					for (var i = 0; i < 40; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}
+				break;
+
+			case 5 : 
+					facesnum=6;
+					for (var i = 0; i < 48; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftextures;
+					}
+
+				break;
+		}  	
+		cubeVertexTextureCoordBuffer = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer.itemSize = 2;
+	    cubeVertexTextureCoordBuffer.numItems = 24;	
+	});
+
 	document.getElementById("reset-button").onclick = function(){
 		// The initial values
 
@@ -702,6 +822,24 @@ function setEventListeners( canvas ){
 		rotationZZ_DIR = 1;
 		
 		rotationZZ_SPEED = 1;
+
+		numberoftextures = 1;
+
+		facesnum = 6;
+
+		textureCoords = textureCoords2;
+
+		gl.disable(gl.BLEND);
+
+	    gl.enable( gl.DEPTH_TEST );
+
+	    blendisOn = false;
+
+		cubeVertexTextureCoordBuffer = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer.itemSize = 2;
+	    cubeVertexTextureCoordBuffer.numItems = 24;
 	};
 }
 

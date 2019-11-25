@@ -90,6 +90,10 @@ var blendisOn = false;
 
 var numberoftextures=1;
 
+//Luminance Flag
+
+var luminance = false;
+
 //Number of faces
 
 var facesnum=6;
@@ -270,9 +274,11 @@ function initTexture() {
 	webGLTexture.image.onload = function () {
 		handleLoadedTexture(webGLTexture)
 	}
-
-	webGLTexture.image.crossOrigin = "";
-	webGLTexture.image.src = "https://webglfundamentals.org/webgl/resources/f-texture.png";
+	var url = "https://webglfundamentals.org/webgl/resources/f-texture.png";
+	if ((new URL(url)).origin !== window.location.origin) {
+      webGLTexture.image.crossOrigin = "";
+    }
+	webGLTexture.image.src = url;
 }
 
 //----------------------------------------------------------------------------
@@ -654,12 +660,29 @@ function setEventListeners( canvas ){
 	document.getElementById("text-file").onchange = function(){
 		var file = this.files[0];
 		webGLTexture.image.src = file["name"];
+
+		luminance = false;
+		
 	};
 
 	document.getElementById("link-src").onclick = function(){
 		var x = document.getElementById("frm3");
-		console.log(x.elements);
+		var url = "https://cors-anywhere.herokuapp.com/"+x.elements[0].value;
+		if ((new URL(url)).origin !== window.location.origin) {
+      		webGLTexture.image.crossOrigin = "";
+    	}
+    	luminance = false;
+    	webGLTexture.image.src = url;
 	};
+
+	document.getElementById("lum-button").onclick = function(){
+		if(!luminance){
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture.image);
+		}else{
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
+		}
+		luminance = !luminance;
+	}
 
 
 	// Button events

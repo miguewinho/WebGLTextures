@@ -126,7 +126,7 @@ The vertex and fragment shaders.
 	  			Size X: <input type="text"><br>
 	  			Size Y: <input type="text"><br>
 	  			Size Z: <input type="text"><br>
-	  			Sizes must be within [0.0 , 0.3].<br>
+	  			Sizes must be within [0.0 , 0.5].<br>
 	  		</form>
 	  		<button id="change-Size">Submit</button>
 		</p>
@@ -144,8 +144,9 @@ The vertex and fragment shaders.
 
         <p>
 			<form id="frm2">
-				Number of images per face (NxN)<br>
-	  			Amount: <input type="text"><br>
+				Number of images per face (NxM)<br>
+	  			N: <input type="text"><br>
+	  			M: <input type="text"><br>
 	  			Amounts must be within [0 , 5].<br>
 	  		</form>
 	  		<button id="change-rep">Submit</button>
@@ -153,6 +154,7 @@ The vertex and fragment shaders.
 
 		<p>
 			<button id="lum-button">Luminance On/Off</button>
+			<button id="alpha-button">Alpha On/Off</button>
 			<button id="blend-button">Blending On/Off</button><br><br>
 			<button id="reset-button">RESET</button>
 		</p>

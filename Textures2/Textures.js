@@ -88,11 +88,17 @@ var blendisOn = false;
 
 //NxN repetition per face
 
-var numberoftextures=1;
+var numberoftexturesn=1;
+
+var numberoftexturesm=1;
 
 //Luminance Flag
 
 var luminance = false;
+
+//ALPHA Flag
+
+var alphaflag = false;
 
 //Number of faces
 
@@ -637,18 +643,22 @@ function setEventListeners( canvas ){
 	document.getElementById("change-Size").onclick = function(){
 		var x = document.getElementById("frm1");
 		
-		if(x.elements[0].value<=0.3 && x.elements[0].value>=0.0) sx = x.elements[0].value;
-		if(x.elements[1].value<=0.3 && x.elements[1].value>=0.0) sy = x.elements[1].value;
-		if(x.elements[2].value<=0.3 && x.elements[2].value>=0.0) sz = x.elements[2].value;
+		if(x.elements[0].value<=0.5 && x.elements[0].value>=0.0) sx = x.elements[0].value;
+		if(x.elements[1].value<=0.5 && x.elements[1].value>=0.0) sy = x.elements[1].value;
+		if(x.elements[2].value<=0.5 && x.elements[2].value>=0.0) sz = x.elements[2].value;
 	};   
 
 	document.getElementById("change-rep").onclick = function(){
 		var x = document.getElementById("frm2");
 		
 		textureCoords=[];
-		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftextures = x.elements[0].value;
+		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftexturesn = x.elements[0].value;
+		if(x.elements[1].value<=5 && x.elements[1].value>=0.0) numberoftexturesm = x.elements[1].value;
+
 		for (var i = 0; i < 8*facesnum; i++) {
-			textureCoords[i]=textureCoords2[i]*numberoftextures;
+			textureCoords[i]=textureCoords2[i]*numberoftexturesn;
+			i++;
+			textureCoords[i]=textureCoords2[i]*numberoftexturesm;
 		}
 		cubeVertexTextureCoordBuffer = gl.createBuffer();
 	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
@@ -662,7 +672,6 @@ function setEventListeners( canvas ){
 		webGLTexture.image.src = file["name"];
 
 		luminance = false;
-		
 	};
 
 	document.getElementById("link-src").onclick = function(){
@@ -672,16 +681,28 @@ function setEventListeners( canvas ){
       		webGLTexture.image.crossOrigin = "";
     	}
     	luminance = false;
+    	alphaflag = false;
     	webGLTexture.image.src = url;
 	};
 
 	document.getElementById("lum-button").onclick = function(){
 		if(!luminance){
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture.image);
+			alphaflag = false;
 		}else{
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
 		}
 		luminance = !luminance;
+	}
+
+	document.getElementById("alpha-button").onclick = function(){
+		/*if(!alphaflag){
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, gl.ALPHA, gl.UNSIGNED_BYTE, webGLTexture.image);
+			luminance = false;
+		}else{
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
+		}
+		alphaflag = !alphaflag;*/
 	}
 
 
@@ -761,42 +782,54 @@ function setEventListeners( canvas ){
 			case 0 : 
 					facesnum=1;
 					for (var i = 0; i < 8; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}
 				break;
 			
 			case 1 : 
 					facesnum=2;
 					for (var i = 0; i < 16; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}	
 				break;
 
 			case 2 : 
 					facesnum=3;
 					for (var i = 0; i < 24; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}
 				break;
 
 			case 3 : 
 					facesnum=4;
 					for (var i = 0; i < 32; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}	
 				break;
 
 			case 4 : 
 					facesnum=5;
 					for (var i = 0; i < 40; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}
 				break;
 
 			case 5 : 
 					facesnum=6;
 					for (var i = 0; i < 48; i++) {
-						textureCoords[i] = textureCoords2[i]*numberoftextures;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn;
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm;
 					}
 
 				break;
@@ -859,11 +892,15 @@ function setEventListeners( canvas ){
 
 	    blendisOn = false;
 
+	    luminance = false;
+
 		cubeVertexTextureCoordBuffer = gl.createBuffer();
 	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
 	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
 	    cubeVertexTextureCoordBuffer.itemSize = 2;
 	    cubeVertexTextureCoordBuffer.numItems = 24;
+
+	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
 	};
 }
 

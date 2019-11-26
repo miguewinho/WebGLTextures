@@ -39,39 +39,63 @@ var ty = 0.0;
 var tz = 0.0;
 
 // The rotation angles in degrees
+var angleYY=[];
+var angleXX=[];
+var angleZZ=[];
 
-var angleXX = 0.0;
+angleXX[0] = 0.0;
 
-var angleYY = 0.0;
+angleYY[0] = 0.0;
 
-var angleZZ = 0.0;
+angleZZ[0] = 0.0;
+
+angleXX[1] = 0.0;
+
+angleYY[1] = 0.0;
+
+angleZZ[1] = 0.0;
 
 // The scaling factors
+var sx=sz=sy=[];
 
-var sx = 0.25;
+sx[0] = 0.25;
 
-var sy = 0.25;
+sy[0] = 0.25;
 
-var sz = 0.25;
+sz[0] = 0.25;
+
+sx[1] = 0.25;
+
+sy[1] = 0.25;
+
+sz[1] = 0.25;
 
 // NEW - Animation controls
+var rotationXX_ON=[];
+var rotationZZ_ON=[];
+var rotationYY_ON=[];
 
-var rotationXX_ON = 0;
+
+//var rotationXX_DIR=rotationYY_DIR=rotationZZ_DIR=[];
+//var rotationXX_SPEED=rotationYY_SPEED=rotationZZ_SPEED=[];
+//XX
+rotationXX_ON[0] = 0;
+rotationXX_ON[1] = 0;
 
 var rotationXX_DIR = 1;
-
 var rotationXX_SPEED = 1;
  
-var rotationYY_ON = 0;
+//YY 
+rotationYY_ON[0] = 0;
+rotationYY_ON[1] = 0;
 
 var rotationYY_DIR = 1;
-
 var rotationYY_SPEED = 1;
- 
-var rotationZZ_ON = 0;
+ //ZZ
+rotationZZ_ON[0] = 0;
+rotationZZ_ON[1] = 0;
 
-var rotationZZ_DIR = 1;
-
+var rotationZZ_DIR= 1;
 var rotationZZ_SPEED = 1;
  
 // To allow choosing the way of drawing the model triangles
@@ -88,7 +112,7 @@ var blendisOn = [false,false];
 
 //Cube index
 
-var indice = 0;
+var indice = 1;
 
 //NxN repetition per face
 
@@ -362,7 +386,7 @@ function drawModel( angleXX, angleYY, angleZZ,
 	
 	mvMatrix = mult( mvMatrix, rotationYYMatrix( angleYY ) );
 	
-	mvMatrix = mult( mvMatrix, rotationXXMatrix( angleXX ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( angleXX) );
 	
 	mvMatrix = mult( mvMatrix, scalingMatrix( sx, sy, sz ) );
 						 
@@ -457,14 +481,14 @@ function drawScene() {
 	
 	// Instance 1 --- RIGHT TOP
 	
-	drawModel( -angleXX, angleYY, angleZZ, 
-	           sx, sy, sz,
+	drawModel( -angleXX[0], angleYY[0], angleZZ[0], 
+	           sx[0], sy[0], sz[0],
 	           tx-0.5, ty, tz,
 	           mvMatrix,
 	           primitiveType[0],webGLTexture[0],cubeVertexTextureCoordBuffer[0]);
 
-	drawModel( -angleXX, angleYY, angleZZ, 
-	           sx, sy, sz,
+	drawModel( -angleXX[1], angleYY[1], angleZZ[1], 
+	           sx[1], sy[1], sz[1],
 	           tx+0.5, ty, tz,
 	           mvMatrix,
 	           primitiveType[1],webGLTexture[1],cubeVertexTextureCoordBuffer[1]);
@@ -488,19 +512,19 @@ function animate() {
 		
 		var elapsed = timeNow - lastTime;
 		
-		if( rotationXX_ON ) {
+		if( rotationXX_ON[indice] ) {
 
-			angleXX += rotationXX_DIR * rotationXX_SPEED * (90 * elapsed) / 1000.0;
+			angleXX[indice] += rotationXX_DIR * rotationXX_SPEED* (90 * elapsed) / 1000.0;
 	    }
 
-		if( rotationYY_ON ) {
+		if( rotationYY_ON[indice] ) {
 
-			angleYY += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
+			angleYY[indice] += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
 	    }
 
-		if( rotationZZ_ON ) {
+		if( rotationZZ_ON[indice] ) {
 
-			angleZZ += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
+			angleZZ[indice] += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
 	    }
 	}
 	
@@ -521,21 +545,21 @@ function handleKeys() {
 		
 		// Page Up
 		
-		sx *= 0.9;
+		sx[indice] *= 0.9;
 		
-		sz *= 0.9;
+		sz[indice] *= 0.9;
 
-		sy *= 0.9;
+		sy[indice] *= 0.9;
 	}
 	if (currentlyPressedKeys[34]) {
 		
 		// Page Down
 		
-		sx *= 1.1;
+		sx[indice]*= 1.1;
 		
-		sz *= 1.1;
+		sz[indice]*= 1.1;
 
-		sy *= 1.1;
+		sy[indice] *= 1.1;
 	}
 }
 
@@ -581,11 +605,11 @@ function handleMouseMove(event) {
 
     var deltaX = newX - lastMouseX;
     
-    angleYY += radians( 50 * deltaX  )
+    angleYY[indice] += radians( 50 * deltaX  )
 
     var deltaY = newY - lastMouseY;
     
-    angleXX -= radians( 50 * deltaY  )
+    angleXX[indice] -= radians( 50 * deltaY  )
     
     lastMouseX = newX
     
@@ -693,9 +717,9 @@ function setEventListeners( canvas ){
 	document.getElementById("change-Size").onclick = function(){
 		var x = document.getElementById("frm1");
 		
-		if(x.elements[0].value<=0.5 && x.elements[0].value>=0.0) sx = x.elements[0].value;
-		if(x.elements[1].value<=0.5 && x.elements[1].value>=0.0) sy = x.elements[1].value;
-		if(x.elements[2].value<=0.5 && x.elements[2].value>=0.0) sz = x.elements[2].value;
+		if(x.elements[0].value<=0.5 && x.elements[0].value>=0.0) sx[indice] = x.elements[0].value;
+		if(x.elements[1].value<=0.5 && x.elements[1].value>=0.0) sy[indice] = x.elements[1].value;
+		if(x.elements[2].value<=0.5 && x.elements[2].value>=0.0) sz[indice] = x.elements[2].value;
 	};   
 
 	document.getElementById("change-rep").onclick = function(){
@@ -763,27 +787,28 @@ function setEventListeners( canvas ){
 		
 		// Switching on / off
 		
-		if( rotationXX_ON ) {
+		if( rotationXX_ON[indice] ) {
 			
-			rotationXX_ON = 0;
+			rotationXX_ON[indice] = 0;
 		}
 		else {
-			
-			rotationXX_ON = 1;
-		}  
+		
+			rotationXX_ON[indice] = 1;
+		} 
+	
 	};     
 
 	document.getElementById("roty-button").onclick = function(){
 		
 		// Switching on / off
 		
-		if( rotationYY_ON ) {
+		if( rotationYY_ON[indice] ) {
 			
-			rotationYY_ON = 0;
+			rotationYY_ON[indice] = 0;
 		}
 		else {
 			
-			rotationYY_ON = 1;
+			rotationYY_ON[indice] = 1;
 		}  
 	};     
 
@@ -791,13 +816,13 @@ function setEventListeners( canvas ){
 		
 		// Switching on / off
 		
-		if( rotationZZ_ON ) {
+		if( rotationZZ_ON[indice] ) {
 			
-			rotationZZ_ON = 0;
+			rotationZZ_ON[indice] = 0;
 		}
 		else {
 			
-			rotationZZ_ON = 1;
+			rotationZZ_ON[indice] = 1;
 		}  
 	};
 
@@ -918,8 +943,8 @@ function setEventListeners( canvas ){
 		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
 	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
 	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-	    cubeVertexTextureCoordBuffer.itemSize = 2;
-	    cubeVertexTextureCoordBuffer.numItems = 24;	
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;	
 	});
 
 	document.getElementById("reset-button").onclick = function(){
@@ -931,35 +956,35 @@ function setEventListeners( canvas ){
 
 		tz = 0.0;
 
-		angleXX = 0.0;
+		angleXX[indice] = 0.0;
 
-		angleYY = 0.0;
+		angleYY[indice] = 0.0;
 
-		angleZZ = 0.0;
+		angleZZ[indice] = 0.0;
 
-		sx = 0.25;
+		sx[indice] = 0.25;
 
-		sy = 0.25;
+		sy[indice] = 0.25;
 
-		sz = 0.25;
-		
-		rotationXX_ON = 0;
+		sz[indice] = 0.25;
+		//xx
+		rotationXX_ON[indice] = 0;
 		
 		rotationXX_DIR = 1;
 		
 		rotationXX_SPEED = 1;
-
-		rotationYY_ON = 0;
+		//yy
+		rotationYY_ON[indice] = 0;
 		
 		rotationYY_DIR = 1;
 		
 		rotationYY_SPEED = 1;
-
-		rotationZZ_ON = 0;
+		//zz
+		rotationZZ_ON[indice] = 0;
 		
-		rotationZZ_DIR = 1;
+		rotationZZ_DIR= 1;
 		
-		rotationZZ_SPEED = 1;
+		rotationZZ_SPEED= 1;
 
 		numberoftextures = 1;
 
@@ -978,11 +1003,11 @@ function setEventListeners( canvas ){
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);	//vertical
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	//horizontal
 
-		cubeVertexTextureCoordBuffer = gl.createBuffer();
-	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
 	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-	    cubeVertexTextureCoordBuffer.itemSize = 2;
-	    cubeVertexTextureCoordBuffer.numItems = 24;
+	   cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	   cubeVertexTextureCoordBuffer[indice].numItems = 24;
 
 	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[0].image);
 
@@ -1030,7 +1055,7 @@ function initWebGL( canvas ) {
 function runWebGL() {
 	
 	var canvas = document.getElementById("my-canvas");
-	
+		
 	initWebGL( canvas );
 
 	shaderProgram = initShaders( gl );

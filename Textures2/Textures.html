@@ -60,6 +60,18 @@ The vertex and fragment shaders.
     }
     
 </script>
+<!-- Buttons style -->
+<style >
+	.projection-selection{
+		position: absolute;
+        top:452px;
+        left: 85px    
+	}
+
+</style> 
+	
+
+
 
 <!-- The JS files -->
 
@@ -80,103 +92,102 @@ The vertex and fragment shaders.
 </head>
 
 <body onload="runWebGL();">
-
-	<div style="text-align: center">
+	
+	<div style="text-align: center; width: 100% ">	
 		
-		<p>Texture Manipulation Menu</p>
+		<div style="text-align:center;width:50% ;float:left;font-size: 30px;">
+			<p>Texture Manipulation Menu</p>	
+			<select id="id-selection" style="width:25%;font-size:15px">
+					<option value="0">Left Cube</option>
+					<option value="1">Right Cube</option>
+		    </select>
+
+			<canvas  id="my-canvas" style="border:1px solid #000000;margin-left: 100px" width="800" height="800"></canvas>
+		</div>
 		
-		<canvas id="my-canvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
+        <div style="width:70%;font-size: 22px">				
+			<p>Press Page Up/Down for Zoom Out/In.</p>
+				
+				<p>Choose the <b>projection type</b>:
+				
+		        <select id="projection-selection" >
+					<option value="0">Orthogonal Projection</option>
+					<option value="1">Perspective Projection</option>
+		        </select>
 
-		<p>Press Page Up/Down for Zoom Out/In.</p>
-		
-		<p>Choose the <b>projection type</b>:
-		
-        <select id="projection-selection">
-			<option value="0">Orthogonal Projection</option>
-			<option value="1">Perspective Projection</option>
-        </select>
+		       
+		        </p>
 
-        <select id="id-selection">
-			<option value="0">Left Cube</option>
-			<option value="1">Right Cube</option>
-        </select>
-        
-        </p>
+				<p>
+				Object Rotation<br>
+				<button id="rotx-button">Rotation X On/Off</button>
+				<button id="roty-button">Rotation Y On/Off</button>
+				<button id="rotz-button">Rotation Z On/Off</button>
+				
+				</p>
 
-		<p>
-		Object Rotation<br>
-		<button id="rotx-button">Rotation X On/Off</button>
-		<button id="roty-button">Rotation Y On/Off</button>
-		<button id="rotz-button">Rotation Z On/Off</button>
-		
-		</p>
+				<p>Read a image from <b>file</b>:
+				
+				<input type="file" id="text-file" name="file">
+				
+				</p>
 
-		<p>Read a image from <b>file</b>:
-		
-		<input type="file" id="text-file" name="file">
-		
-		</p>
+				<p>
+					<form id="frm3">
+						Read a image from <b>Link</b>:
+						<input type="text">
+					</form>
+					<button id="link-src">Submit</button>
+				</p>
 
-		<p>
-			<form id="frm3">
-				Read a image from <b>Link</b>:
-				<input type="text">
-			</form>
-			<button id="link-src">Submit</button>
-		</p>
+				<p>
+					<form id="frm1">
+						Object Sizes<br>
+			  			Size X: <input type="text"><br>
+			  			Size Y: <input type="text"><br>
+			  			Size Z: <input type="text"><br>
+			  			Sizes must be within [0.0 , 0.5].<br>
+			  		</form>
+			  		<button id="change-Size">Submit</button>
+				</p>
 
-		<p>
-			<form id="frm1">
-				Object Sizes<br>
-	  			Size X: <input type="text"><br>
-	  			Size Y: <input type="text"><br>
-	  			Size Z: <input type="text"><br>
-	  			Sizes must be within [0.0 , 0.5].<br>
-	  		</form>
-	  		<button id="change-Size">Submit</button>
-		</p>
+				<p>
+					<select id="repetition-selection">
+						<option value="0">1</option>
+						<option value="1">2</option>
+						<option value="2">3</option>
+						<option value="3">4</option>
+						<option value="4">5</option>
+						<option value="5">6</option>
+		        	</select>
+		        </p>
 
-		<p>
-			<select id="repetition-selection">
-				<option value="0">1</option>
-				<option value="1">2</option>
-				<option value="2">3</option>
-				<option value="3">4</option>
-				<option value="4">5</option>
-				<option value="5">6</option>
-        	</select>
-        </p>
+		        <p>
+					<form id="frm2">
+						Number of images per face (NxM)<br>
+			  			N: <input type="text"><br>
+			  			M: <input type="text"><br>
+			  			Amounts must be within [0 , 5].<br>
+			  		</form>
+			  		<button id="change-rep">Submit</button>
+				</p>
 
-        <p>
-			<form id="frm2">
-				Number of images per face (NxM)<br>
-	  			N: <input type="text"><br>
-	  			M: <input type="text"><br>
-	  			Amounts must be within [0 , 5].<br>
-	  		</form>
-	  		<button id="change-rep">Submit</button>
-		</p>
+				<p>
+					<button id="repeath-button">Horizontal Repetition</button>
+					<button id="clamph-button">Horizontal Clamp to Edge</button>
+					<button id="mirrorh-button">Horizontal Mirror</button><br>
+					<button id="repeatv-button">Vertical Repetition</button>
+					<button id="clampv-button">Vertical Clamp to Edge</button>
+					<button id="mirrorv-button">Vertical Mirror</button><br>
+				</p>
 
-		<p>
-			<button id="repeath-button">Horizontal Repetition</button>
-			<button id="clamph-button">Horizontal Clamp to Edge</button>
-			<button id="mirrorh-button">Horizontal Mirror</button><br>
-			<button id="repeatv-button">Vertical Repetition</button>
-			<button id="clampv-button">Vertical Clamp to Edge</button>
-			<button id="mirrorv-button">Vertical Mirror</button><br>
-		</p>
-
-		<p>
-			<button id="lum-button">Luminance On/Off</button>
-			<button id="alpha-button">Alpha On/Off</button>
-			<button id="blend-button">Blending On/Off</button><br><br>
-			<button id="reset-button">RESET</button>
-		</p>
-
-
-        				
-	</div>
-
-</body>
-
+				<p>
+					<button id="lum-button">Luminance On/Off</button>
+					<button id="alpha-button">Alpha On/Off</button>
+					<button id="blend-button">Blending On/Off</button><br><br>
+					<button id="reset-button" style="background-color: #4CAF50;padding: 8px 30px; color: white;">RESET</button>
+				</p>
+			<div>				
+		</div>
+	</body>
 </html>

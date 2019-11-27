@@ -580,11 +580,11 @@ function handleKeys() {
 
 		sy[indice] *= 1.1;
 	
-	}if(currentlyPressedKeys[76]){
+	}if(currentlyPressedKeys[37]){
 		document.getElementById("id-selection").value="Left Cube";
 		indice=0;
 	}
-	if(currentlyPressedKeys[82]){
+	if(currentlyPressedKeys[39]){
 		document.getElementById("id-selection").value="Right Cube";
 		indice=1;
 	}

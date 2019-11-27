@@ -579,6 +579,14 @@ function handleKeys() {
 		sz[indice]*= 1.1;
 
 		sy[indice] *= 1.1;
+	
+	}if(currentlyPressedKeys[76]){
+		document.getElementById("id-selection").value="Left Cube";
+		indice=0;
+	}
+	if(currentlyPressedKeys[82]){
+		document.getElementById("id-selection").value="Right Cube";
+		indice=1;
 	}
 }
 

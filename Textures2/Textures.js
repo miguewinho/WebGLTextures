@@ -112,7 +112,7 @@ var blendisOn = [false,false];
 
 //Cube index
 
-var indice = 1;
+var indice = 0;
 
 //NxN repetition per face
 
@@ -331,7 +331,31 @@ function initTexture() {
 	webGLTexture[1].image.src = url2;
 }
 
-//----------------------------------------------------------------------------
+function loadImage(url, callback) {
+  var image = new Image();
+  image.src = url;
+  image.onload = callback;
+  return image;
+}
+//---------------------------------------------------------------------------
+function loadImages(urls, callback) {
+  var images = [];
+  var imagesToLoad = urls.length;
+ 
+  // Called each time an image finished loading.
+  var onImageLoad = function() {
+    --imagesToLoad;
+    // If all the images are loaded call the callback.
+    if (imagesToLoad == 0) {
+      callback(images);
+    }
+  };
+ 
+  for (var ii = 0; ii < imagesToLoad; ++ii) {
+    var image = loadImage(urls[ii], onImageLoad);
+    images.push(image);
+  }
+}
 
 // Handling the Buffers
 
@@ -560,6 +584,13 @@ function handleKeys() {
 		sz[indice]*= 1.1;
 
 		sy[indice] *= 1.1;
+	}if(currentlyPressedKeys[76]){
+		document.getElementById("id-selection").value="Left Cube";
+		indice=0;
+	}
+	if(currentlyPressedKeys[82]){
+		document.getElementById("id-selection").value="Right Cube";
+		indice=1;
 	}
 }
 
@@ -706,10 +737,13 @@ function setEventListeners( canvas ){
 				
 		switch(p){
 			
-			case 0 : indice = 0;
+			case 0 : 
+				indice = 0;
 				break;
 			
-			case 1 : indice = 1;
+			case 1 : 
+				indice = 1;
+				index.value="Right Cube";
 				break;
 		}  	
 	}); 
@@ -850,6 +884,7 @@ function setEventListeners( canvas ){
 	};
 
 	document.getElementById("repeath-button").onclick = function(){
+
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	//horizontal
 
 	}

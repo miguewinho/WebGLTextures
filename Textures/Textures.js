@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-//  WebGL_example_24_GPU_per_vertex.js 
+//  WebGL_example_28.js 
 //
-//  Phong Illumination Model on the GPU - Per vertex shading - Several light sources
+//  Applying a texture
 //
-//  Reference: E. Angel examples
+//  Adapted from learningwebgl.com
 //
-//  J. Madeira - November 2017 + November 2018
+//  J. Madeira - November 2015
 //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -18,88 +18,262 @@
 
 var gl = null; // WebGL context
 
-var shaderProgram = null;
+var shaderProgram = null; 
 
-var triangleVertexPositionBuffer = null;
-	
-var triangleVertexNormalBuffer = null;	
+// NEW --- Buffers
 
-// The GLOBAL transformation parameters
+var cubeVertexPositionBuffer = null;
 
-var globalAngleYY = 0.0;
+var cubeVertexIndexBuffer = null;
 
-var globalAngleXX = 0.0;
+var cubeVertexTextureCoordBuffer = [];
 
-var globalTz = 0.0;
+// The global transformation parameters
 
-// GLOBAL Animation controls
+// The translation vector
 
-var globalRotationYY_ON = 0;
+var tx = 0.0;
 
-var globalRotationYY_DIR = 1;
+var ty = 0.0;
 
-var globalRotationYY_SPEED = 1;
+var tz = 0.0;
 
-var globalRotationXX_ON = 0;
+// The rotation angles in degrees
+var angleYY=[];
+var angleXX=[];
+var angleZZ=[];
 
-var globalRotationXX_DIR = 1;
+angleXX[0] = 0.0;
 
-var globalRotationXX_SPEED = 1;
+angleYY[0] = 0.0;
 
+angleZZ[0] = 0.0;
+
+angleXX[1] = 0.0;
+
+angleYY[1] = 0.0;
+
+angleZZ[1] = 0.0;
+
+// The scaling factors
+var sx=sz=sy=[];
+
+sx[0] = 0.25;
+
+sy[0] = 0.25;
+
+sz[0] = 0.25;
+
+sx[1] = 0.25;
+
+sy[1] = 0.25;
+
+sz[1] = 0.25;
+
+// NEW - Animation controls
+var rotationXX_ON=[];
+var rotationZZ_ON=[];
+var rotationYY_ON=[];
+
+
+//var rotationXX_DIR=rotationYY_DIR=rotationZZ_DIR=[];
+//var rotationXX_SPEED=rotationYY_SPEED=rotationZZ_SPEED=[];
+//XX
+rotationXX_ON[0] = 0;
+rotationXX_ON[1] = 0;
+
+var rotationXX_DIR = 1;
+var rotationXX_SPEED = 1;
+ 
+//YY 
+rotationYY_ON[0] = 0;
+rotationYY_ON[1] = 0;
+
+var rotationYY_DIR = 1;
+var rotationYY_SPEED = 1;
+ //ZZ
+rotationZZ_ON[0] = 0;
+rotationZZ_ON[1] = 0;
+
+var rotationZZ_DIR= 1;
+var rotationZZ_SPEED = 1;
+ 
 // To allow choosing the way of drawing the model triangles
 
 var primitiveType = null;
-
-//To save the texture values
-
-var textures = [sceneModels,sceneModels];
  
 // To allow choosing the projection type
 
-var projectionType = 0;
+var projectionType = [0,0];
 
-// NEW --- The viewer position
+//Blending Flag
 
-// It has to be updated according to the projection type
+var blendisOn = [false,false];
 
-var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
+//Cube index
 
+var indice = 0;
 
-//----------------------------------------------------------------------------
-//
-// NEW - To count the number of frames per second (fps)
-//
+//NxN repetition per face
 
-var elapsedTime = 0;
+var numberoftexturesn=[1,1];
 
-var frameCount = 0;
+var numberoftexturesm=[1,1];
 
-var lastfpsTime = new Date().getTime();;
+//Luminance Flag
 
+var luminance = [false,false];
 
-function countFrames() {
-	
-   var now = new Date().getTime();
+//ALPHA Flag
 
-   frameCount++;
-   
-   elapsedTime += (now - lastfpsTime);
+var alphaflag = [false,false];
 
-   lastfpsTime = now;
+//Number of faces
 
-   if(elapsedTime >= 1000) {
-	   
-       fps = frameCount;
-       
-       frameCount = 0;
-       
-       elapsedTime -= 1000;
-	   
-	   document.getElementById('fps').innerHTML = 'fps:' + fps;
-   }
-}
+var facesnum=[6,6];
+ 
+// From learningwebgl.com
 
+// NEW --- Storing the vertices defining the cube faces
 
+vertices = [
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0
+];
+
+var textureCoords2 = [
+
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+
+          // Back face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Top face
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+
+          // Bottom face
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          // Right face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Left face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+];
+
+// Texture coordinates for the quadrangular faces
+
+// Notice how they are assigne to the corresponding vertices
+
+var textureCoords = [
+
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+
+          // Back face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Top face
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+
+          // Bottom face
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          // Right face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Left face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+];
+
+// Vertex indices defining the triangles
+        
+var cubeVertexIndices = [
+
+            0, 1, 2,      0, 2, 3,    // Front face
+
+            4, 5, 6,      4, 6, 7,    // Back face
+
+            8, 9, 10,     8, 10, 11,  // Top face
+
+            12, 13, 14,   12, 14, 15, // Bottom face
+
+            16, 17, 18,   16, 18, 19, // Right face
+
+            20, 21, 22,   20, 22, 23  // Left face
+];
+         
+         
 //----------------------------------------------------------------------------
 //
 // The WebGL code
@@ -110,136 +284,150 @@ function countFrames() {
 //  Rendering
 //
 
-// Handling the Vertex Coordinates and the Vertex Normal Vectors
+// Handling the Textures
 
-function initBuffers( model ) {	
-	
-	// Vertex Coordinates
+// From www.learningwebgl.com
+
+function handleLoadedTexture(texture) {
 		
-	triangleVertexPositionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
-	triangleVertexPositionBuffer.itemSize = 3;
-	triangleVertexPositionBuffer.numItems =  model.vertices.length / 3;			
+	const data = new Uint8Array([
+  128,  64, 128,
+    0, 192,   0,
+]);
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+}
 
-	// Associating to the vertex shader
+
+var webGLTexture=[];
+
+function initTexture() {
 	
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
-			triangleVertexPositionBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);
+	webGLTexture.push(gl.createTexture());
+	webGLTexture.push(gl.createTexture());
+	webGLTexture[0].image = new Image();
+	webGLTexture[0].image.onload = function () {
+		handleLoadedTexture(webGLTexture[0])
+	}
+
+	webGLTexture[1].image = new Image();
+	webGLTexture[1].image.onload = function () {
+		handleLoadedTexture(webGLTexture[1])
+	}
+
+	var url1 = "https://webglfundamentals.org/webgl/resources/f-texture.png";
+	if ((new URL(url1)).origin !== window.location.origin) {
+      webGLTexture[0].image.crossOrigin = "";
+    }
+	webGLTexture[0].image.src = url1;
+
+	var url2 = "https://webglfundamentals.org/webgl/resources/f-texture.png";
+	if ((new URL(url2)).origin !== window.location.origin) {
+      webGLTexture[1].image.crossOrigin = "";
+    }	
+	webGLTexture[1].image.src = url2;
+}
+
+//----------------------------------------------------------------------------
+
+// Handling the Buffers
+
+function initBuffers() {	
 	
-	// Vertex Normal Vectors
+	// Coordinates
 		
-	triangleVertexNormalBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexNormalBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array( model.normals), gl.STATIC_DRAW);
-	triangleVertexNormalBuffer.itemSize = 3;
-	triangleVertexNormalBuffer.numItems = model.normals.length / 3;			
+	cubeVertexPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+	cubeVertexPositionBuffer.itemSize = 3;
+	cubeVertexPositionBuffer.numItems = vertices.length / 3;			
 
-	// Associating to the vertex shader
+	// Textures
+		
+    cubeVertexTextureCoordBuffer.push(gl.createBuffer());
+    cubeVertexTextureCoordBuffer.push(gl.createBuffer());
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[0]);
+ 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    cubeVertexTextureCoordBuffer[0].itemSize = 2;
+    cubeVertexTextureCoordBuffer[0].numItems = 24;	
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[1]);
+ 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    cubeVertexTextureCoordBuffer[1].itemSize = 2;
+    cubeVertexTextureCoordBuffer[1].numItems = 24;			
+
+	// Vertex indices
 	
-	gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 
-			triangleVertexNormalBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);	
+    cubeVertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+    cubeVertexIndexBuffer.itemSize = 1;
+    cubeVertexIndexBuffer.numItems = 36;
 }
 
 //----------------------------------------------------------------------------
 
 //  Drawing the model
 
-function drawModel( model,
+function drawModel( angleXX, angleYY, angleZZ, 
+					sx, sy, sz,
+					tx, ty, tz,
 					mvMatrix,
-					primitiveType ) {
+					primitiveType , texture,texturecoordbuffer) {
 
-	// The the global model transformation is an input
-	
-	// Concatenate with the particular model transformations
-	
     // Pay attention to transformation order !!
     
-	mvMatrix = mult( mvMatrix, translationMatrix( model.tx, model.ty, model.tz ) );
+	mvMatrix = mult( mvMatrix, translationMatrix( tx, ty, tz ) );
 						 
-	mvMatrix = mult( mvMatrix, rotationZZMatrix( model.rotAngleZZ ) );
+	mvMatrix = mult( mvMatrix, rotationZZMatrix( angleZZ ) );
 	
-	mvMatrix = mult( mvMatrix, rotationYYMatrix( model.rotAngleYY ) );
+	mvMatrix = mult( mvMatrix, rotationYYMatrix( angleYY ) );
 	
-	mvMatrix = mult( mvMatrix, rotationXXMatrix( model.rotAngleXX ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( angleXX) );
 	
-	mvMatrix = mult( mvMatrix, scalingMatrix( model.sx, model.sy, model.sz ) );
+	mvMatrix = mult( mvMatrix, scalingMatrix( sx, sy, sz ) );
 						 
 	// Passing the Model View Matrix to apply the current transformation
 	
 	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 	
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(flatten(mvMatrix)));
-    
-	// Associating the data to the vertex shader
-	
-	// This can be done in a better way !!
 
-	// Vertex Coordinates and Vertex Normal Vectors
-	
-	initBuffers(model);
-	
-	// Material properties
-	
-	gl.uniform3fv( gl.getUniformLocation(shaderProgram, "k_ambient"), 
-		flatten(model.kAmbi) );
+    // Passing the buffers
+    	
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     
-    gl.uniform3fv( gl.getUniformLocation(shaderProgram, "k_diffuse"),
-        flatten(model.kDiff) );
-    
-    gl.uniform3fv( gl.getUniformLocation(shaderProgram, "k_specular"),
-        flatten(model.kSpec) );
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-	gl.uniform1f( gl.getUniformLocation(shaderProgram, "shininess"), 
-		model.nPhong );
+	// NEW --- Textures
+	
+	gl.bindBuffer(gl.ARRAY_BUFFER, texturecoordbuffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texturecoordbuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    // Light Sources
-	
-	var numLights = lightSources.length;
-	
-	gl.uniform1i( gl.getUniformLocation(shaderProgram, "numLights"), 
-		numLights );
-
-	//Light Sources
-	
-	for(var i = 0; i < lightSources.length; i++ )
-	{
-		gl.uniform1i( gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].isOn"),
-			lightSources[i].isOn );
-    
-		gl.uniform4fv( gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].position"),
-			flatten(lightSources[i].getPosition()) );
-    
-		gl.uniform3fv( gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].intensities"),
-			flatten(lightSources[i].getIntensity()) );
-    }
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
         
-	// Drawing 
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+    // NEW --- Blending
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+           
+    var alpha = 0.5;
+           
+    gl.uniform1f(shaderProgram.alphaUniform, alpha);
+    
+    // The vertex indices
+    
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+
+	// Drawing the triangles --- NEW --- DRAWING ELEMENTS 
 	
-	// primitiveType allows drawing as filled triangles / wireframe / vertices
-	
-	if( primitiveType == gl.LINE_LOOP ) {
-		
-		// To simulate wireframe drawing!
-		
-		// No faces are defined! There are no hidden lines!
-		
-		// Taking the vertices 3 by 3 and drawing a LINE_LOOP
-		
-		var i;
-		
-		for( i = 0; i < triangleVertexPositionBuffer.numItems / 3; i++ ) {
-		
-			gl.drawArrays( primitiveType, 3 * i, 3 ); 
-		}
-	}	
-	else {
-				
-		gl.drawArrays(primitiveType, 0, triangleVertexPositionBuffer.numItems); 
-		
-	}	
+	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);	
 }
 
 //----------------------------------------------------------------------------
@@ -252,27 +440,19 @@ function drawScene() {
 	
 	var mvMatrix = mat4();
 	
-	// Clearing the frame-buffer and the depth-buffer
+	// Clearing with the background color
 	
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT);
 	
-	// Computing the Projection Matrix
+	// NEW --- Computing the Projection Matrix
 	
-	if( projectionType == 0 ) {
+	if( projectionType[indice] == 0 ) {
 		
 		// For now, the default orthogonal view volume
 		
 		pMatrix = ortho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
 		
-		// Global transformation !!
-		
-		globalTz = 0.0;
-		
-		// NEW --- The viewer is on the ZZ axis at an indefinite distance
-		
-		pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[3] = 0.0;
-		
-		pos_Viewer[2] = 1.0;  
+		tz = 0;
 	}
 	else {	
 
@@ -282,17 +462,10 @@ function drawScene() {
 		
 		// Ensure that the model is "inside" the view volume
 		
-		pMatrix = perspective( 45, 1, 0.05, 15 );
+		pMatrix = perspective( 45, 1, 0.05, 10 );
 		
-		// Global transformation !!
-		
-		globalTz = -2.5;
+		tz = -2.25;
 
-		// NEW --- The viewer is on (0,0,0)
-		
-		pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[2] = 0.0;
-		
-		pos_Viewer[3] = 1.0;  
 	}
 	
 	// Passing the Projection Matrix to apply the current projection
@@ -301,68 +474,44 @@ function drawScene() {
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
 	
-	// NEW --- Passing the viewer position to the vertex shader
+	// NEW --- Instantianting the same model more than once !!
 	
-	gl.uniform4fv( gl.getUniformLocation(shaderProgram, "viewerPosition"),
-        flatten(pos_Viewer) );
+	// And with diferent transformation parameters !!
 	
-	// GLOBAL TRANSFORMATION FOR THE WHOLE SCENE
+	// Call the drawModel function !!
 	
-	mvMatrix = translationMatrix( 0, 0, globalTz );
-	
-	// NEW - Updating the position of the light sources, if required
-	
-	// FOR EACH LIGHT SOURCE
-	    
-	for(var i = 0; i < lightSources.length; i++ )
-	{
-		// Animating the light source, if defined
-		    
-		var lightSourceMatrix = mat4();
+	// Instance 1 --- RIGHT TOP
 
-		if( !lightSources[i].isOff() ) {
-
-			if( lightSources[i].isRotYYOn() ) 
-			{
-				lightSourceMatrix = mult( 
-						lightSourceMatrix, 
-						rotationYYMatrix( lightSources[i].getRotAngleYY() ) );
-			}
-
-			if( lightSources[i].isRotXXOn() ) 
-			{
-				lightSourceMatrix = mult( 
-						lightSourceMatrix, 
-						rotationXXMatrix( lightSources[i].getRotAngleXX() ) );
-			}
-
-			if( lightSources[i].isRotZZOn() ) 
-			{
-				lightSourceMatrix = mult( 
-						lightSourceMatrix, 
-						rotationZZMatrix( lightSources[i].getRotAngleZZ() ) );
-			}
-		}
-		
-		// NEW Passing the Light Souree Matrix to apply
-	
-		var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
-	
-		gl.uniformMatrix4fv(lsmUniform, false, new Float32Array(flatten(lightSourceMatrix)));
+	if(blendisOn[0]){
+		gl.enable(gl.BLEND);
+	    gl.disable( gl.DEPTH_TEST );
+	}else{
+		gl.disable(gl.BLEND);
+	    gl.enable( gl.DEPTH_TEST);
 	}
-			
-	// Instantianting all scene models
 	
-	for(var i = 0; i < sceneModels.length; i++ )
-	{ 
-		drawModel( sceneModels[i],
-			   mvMatrix,
-	           primitiveType );
+	drawModel( -angleXX[0], angleYY[0], angleZZ[0], 
+	           sx[0], sy[0], sz[0],
+	           tx-0.5, ty, tz,
+	           mvMatrix,
+	           primitiveType[0],webGLTexture[0],cubeVertexTextureCoordBuffer[0]);
+
+	if(blendisOn[1]){
+		gl.enable(gl.BLEND);
+	    gl.disable( gl.DEPTH_TEST );
+	}else{
+		gl.disable(gl.BLEND);
+	    gl.enable( gl.DEPTH_TEST);
 	}
+
+	drawModel( -angleXX[1], angleYY[1], angleZZ[1], 
+	           sx[1], sy[1], sz[1],
+	           tx+0.5, ty, tz,
+	           mvMatrix,
+	           primitiveType[1],webGLTexture[1],cubeVertexTextureCoordBuffer[1]);
+
+
 	           
-	// NEW - Counting the frames
-	
-	countFrames();
 }
 
 //----------------------------------------------------------------------------
@@ -382,64 +531,21 @@ function animate() {
 		
 		var elapsed = timeNow - lastTime;
 		
-		// Global rotation
-		
-		if( globalRotationYY_ON ) {
+		if( rotationXX_ON[indice] ) {
 
-			globalAngleYY += globalRotationYY_DIR * globalRotationYY_SPEED * (90 * elapsed) / 1000.0;
+			angleXX[indice] += rotationXX_DIR * rotationXX_SPEED* (90 * elapsed) / 1000.0;
 	    }
 
-	    if( globalRotationXX_ON ) {
+		if( rotationYY_ON[indice] ) {
 
-			globalAngleXX += globalRotationXX_DIR * globalRotationXX_SPEED * (90 * elapsed) / 1000.0;
+			angleYY[indice] += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
 	    }
 
-		// For every model --- Local rotations
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			if( sceneModels[i].rotXXOn ) {
+		if( rotationZZ_ON[indice] ) {
 
-				sceneModels[i].rotAngleXX += sceneModels[i].rotXXDir * sceneModels[i].rotXXSpeed * (90 * elapsed) / 1000.0;
-			}
-
-			if( sceneModels[i].rotYYOn ) {
-
-				sceneModels[i].rotAngleYY += sceneModels[i].rotYYDir * sceneModels[i].rotYYSpeed * (90 * elapsed) / 1000.0;
-			}
-
-			if( sceneModels[i].rotZZOn ) {
-
-				sceneModels[i].rotAngleZZ += sceneModels[i].rotZZDir * sceneModels[i].rotZZSpeed * (90 * elapsed) / 1000.0;
-			}
-		}
-		
-		// Rotating the light sources
-	
-		for(var i = 0; i < lightSources.length; i++ )
-	    {
-			if( lightSources[i].isRotYYOn() ) {
-
-				var angle = lightSources[i].getRotAngleYY() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
-		
-				lightSources[i].setRotAngleYY( angle );
-			}
-
-			if( lightSources[i].isRotXXOn() ) {
-
-				var angle = lightSources[i].getRotAngleXX() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
-		
-				lightSources[i].setRotAngleXX( angle );
-			}
-
-			if( lightSources[i].isRotZZOn() ) {
-
-				var angle = lightSources[i].getRotAngleZZ() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
-		
-				lightSources[i].setRotAngleZZ( angle );
-			}
-		}
-}
+			angleZZ[indice] += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
+	    }
+	}
 	
 	lastTime = timeNow;
 }
@@ -458,25 +564,21 @@ function handleKeys() {
 		
 		// Page Up
 		
-		for (var i = 0; i < sceneModels.length; i++) {
-			sceneModels[i].sx *= 0.9;
-			
-			sceneModels[i].sz *= 0.9;
+		sx[indice] *= 0.9;
+		
+		sz[indice] *= 0.9;
 
-			sceneModels[i].sy *= 0.9;
-		}
+		sy[indice] *= 0.9;
 	}
 	if (currentlyPressedKeys[34]) {
 		
 		// Page Down
 		
-		for (var i = 0; i < sceneModels.length; i++) {
-			sceneModels[i].sx *= 1.1;
-			
-			sceneModels[i].sz *= 1.1;
+		sx[indice]*= 1.1;
+		
+		sz[indice]*= 1.1;
 
-			sceneModels[i].sy *= 1.1;
-		}
+		sy[indice] *= 1.1;
 	}
 }
 
@@ -486,21 +588,20 @@ function handleKeys() {
 
 // Adapted from www.learningwebgl.com
 
+
 var mouseDown = false;
 
-var lastMouseX = [null,null];
+var lastMouseX = null;
 
-var lastMouseY = [null,null];
+var lastMouseY = null;
 
 function handleMouseDown(event) {
 	
     mouseDown = true;
-
-    for (var i = 0; i < 2; i++) {
-    	lastMouseX[i] = event.clientX;
   
-    	lastMouseY[i] = event.clientY;
-    }
+    lastMouseX = event.clientX;
+  
+    lastMouseY = event.clientY;
 }
 
 function handleMouseUp(event) {
@@ -515,28 +616,24 @@ function handleMouseMove(event) {
       return;
     } 
   
-  	for (var i = 0; i < sceneModels.length; i++) {
-	    // Rotation angles proportional to cursor displacement
-	    
-	    var newX = event.clientX;
-	  
-	    var newY = event.clientY;
+    // Rotation angles proportional to cursor displacement
+    
+    var newX = event.clientX;
+  
+    var newY = event.clientY;
 
-	    var deltaX = newX - lastMouseX[i];
-	    
-	    sceneModels[i].rotAngleYY += radians( 20 * deltaX  )
+    var deltaX = newX - lastMouseX;
+    
+    angleYY[indice] += radians( 50 * deltaX  )
 
-	    var deltaY = newY - lastMouseY[i];
-	    
-	    sceneModels[i].rotAngleXX += radians( 20 * deltaY  )
-	    
-	    lastMouseX[i] = newX
-	    
-	    lastMouseY[i] = newY;
-	}
-}
-
-
+    var deltaY = newY - lastMouseY;
+    
+    angleXX[indice] -= radians( 50 * deltaY  )
+    
+    lastMouseX = newX
+    
+    lastMouseY = newY;
+  }
 //----------------------------------------------------------------------------
 
 // Timer
@@ -544,7 +641,9 @@ function handleMouseMove(event) {
 function tick() {
 	
 	requestAnimFrame(tick);
-
+	
+	// NEW --- Processing keyboard events 
+	
 	handleKeys();
 	
 	drawScene();
@@ -553,19 +652,21 @@ function tick() {
 }
 
 
+
+
 //----------------------------------------------------------------------------
 //
 //  User Interaction
 //
 
 function outputInfos(){
-    
+		
 }
 
 //----------------------------------------------------------------------------
 
-function setEventListeners(canvas){
-
+function setEventListeners( canvas ){
+	
 	// NEW ---Handling the mouse
 	
 	// From learningwebgl.com
@@ -575,7 +676,7 @@ function setEventListeners(canvas){
     document.onmouseup = handleMouseUp;
     
     document.onmousemove = handleMouseMove;
-
+    
     // NEW ---Handling the keyboard
 	
 	// From learningwebgl.com
@@ -594,7 +695,7 @@ function setEventListeners(canvas){
     
     document.onkeyup = handleKeyUp;
 	
-    // Dropdown list
+	// Dropdown list
 	
 	var projection = document.getElementById("projection-selection");
 	
@@ -606,436 +707,338 @@ function setEventListeners(canvas){
 				
 		switch(p){
 			
-			case 0 : projectionType = 0;
+			case 0 : projectionType[indice] = 0;
 				break;
 			
-			case 1 : projectionType = 1;
+			case 1 : projectionType[indice] = 1;
 				break;
 		}  	
-	});    
-
-	// Dropdown list
-	
-	var list = document.getElementById("rendering-mode-selection");
-	
-	list.addEventListener("click", function(){
-				
-		// Getting the selection
-		
-		var mode = list.selectedIndex;
-				
-		switch(mode){
-			
-			case 0 : primitiveType = gl.TRIANGLES;
-				break;
-			
-			case 1 : primitiveType = gl.LINE_LOOP;
-				break;
-			
-			case 2 : primitiveType = gl.POINTS;
-				break;
-		}
 	}); 
 
-	var texture = document.getElementById("texture-mode-selection1");
+	var index = document.getElementById("id-selection");
 	
-	texture.addEventListener("click", function(){
+	index.addEventListener("click", function(){
 				
 		// Getting the selection
 		
-		var p = texture.selectedIndex;
+		var p = index.selectedIndex;
 				
 		switch(p){
 			
-			case 0 : 
-				sceneModels[0].kAmbi = [ 0.21, 0.13, 0.05 ];
-				sceneModels[0].kDiff = [ 0.71, 0.43, 0.18 ];
-				sceneModels[0].kSpec = [ 0.39, 0.27, 0.17];
-				sceneModels[0].nPhong = 25.6;
-
+			case 0 : indice = 0;
 				break;
 			
-			case 1 :  
-				sceneModels[0].kAmbi = [ 0.25, 0.15, 0.06 ];
-				sceneModels[0].kDiff = [ 0.4, 0.24, 0.1 ];
-				sceneModels[0].kSpec = [ 0.77, 0.46, 0.20 ];
-				sceneModels[0].nPhong = 76.8;
-
+			case 1 : indice = 1;
 				break;
-
-			case 2 : 
-				sceneModels[0].kAmbi = [ 0.19, 0.07, 0.02 ];
-				sceneModels[0].kDiff = [ 0.7, 0.27, 0.08 ];
-				sceneModels[0].kSpec = [ 0.26, 0.14, 0.08 ];
-				sceneModels[0].nPhong = 12.8;
-
-				break;
-
-			case 3 : 
-				sceneModels[0].kAmbi = [ 0.23, 0.08, 0.03 ];
-				sceneModels[0].kDiff = [ 0.55, 0.21, 0.07 ];
-				sceneModels[0].kSpec = [ 0.58, 0.22, 0.07 ];
-				sceneModels[0].nPhong = 51.2;
-
-				break;
-
-			case 4 : 
-				sceneModels[0].kAmbi = [ 0.25, 0.25, 0.25 ];
-				sceneModels[0].kDiff = [ 0.4, 0.4, 0.4 ];
-				sceneModels[0].kSpec = [ 0.77, 0.77, 0.77 ];
-				sceneModels[0].nPhong = 76.8;
-
-				break;
-
-			case 5 : 
-				sceneModels[0].kAmbi = [ 0.33, 0.22, 0.03 ];
-				sceneModels[0].kDiff = [ 0.78, 0.57, 0.11 ];
-				sceneModels[0].kSpec = [ 0.99, 0.94, 0.81 ];
-				sceneModels[0].nPhong = 27.9;
-
-				break;
-
-			case 6 : 
-				sceneModels[0].kAmbi = [ 0.25, 0.20, 0.07 ];
-				sceneModels[0].kDiff = [ 0.75, 0.60, 0.23];
-				sceneModels[0].kSpec = [ 0.63, 0.56, 0.37 ];
-				sceneModels[0].nPhong = 51.2;
-
-				break;
-
-			case 7 : 
-				sceneModels[0].kAmbi = [ 0.25, 0.22, 0.06 ];
-				sceneModels[0].kDiff = [ 0.35, 0.31, 0.09 ];
-				sceneModels[0].kSpec = [ 0.80, 0.73, 0.21 ];
-				sceneModels[0].nPhong = 83.2;
-
-				break;
-
-			case 8 : 
-				sceneModels[0].kAmbi = [ 0.23, 0.23, 0.23 ];
-				sceneModels[0].kDiff = [ 0.28, 0.28, 0.28 ];
-				sceneModels[0].kSpec = [ 0.77, 0.77, 0.77 ];
-				sceneModels[0].nPhong = 89.6;
-
-				break;
-
-			case 9 : 
-				sceneModels[0].kAmbi = [ 0.3, 0.0, 0.0 ];
-				sceneModels[0].kDiff = [ 0.6, 0.0, 0.0 ];
-				sceneModels[0].kSpec = [ 0.8, 0.6, 0.6 ];
-				sceneModels[0].nPhong = 32.0;
-
-				break;
-
-			case 10 : 
-				sceneModels[0].kAmbi = [ 0.0, 0.0, 0.5 ];
-				sceneModels[0].kDiff = [ 0.0, 0.0, 1.0 ];
-				sceneModels[0].kSpec = [ 1.0, 1.0, 1.0 ];
-				sceneModels[0].nPhong = 125.0;
-
-				break;
-
-			case 11 : 
-				sceneModels[0].kAmbi = [ 0.1, 0.1, 0.1 ];
-				sceneModels[0].kDiff = [ 0.5, 0.5, 0.5 ];
-				sceneModels[0].kSpec = [ 0.7, 0.7, 0.7 ];
-				sceneModels[0].nPhong = 1.0;
-
-				break;
-
-		}
-		textures[0].kAmbi = sceneModels[0].kAmbi;
-		textures[0].kDiff = sceneModels[0].kDiff;
-		textures[0].kSpec = sceneModels[0].kSpec;
-		textures[0].nPhong = sceneModels[0].nPhong;
-	});  
-
-	var texture2 = document.getElementById("texture-mode-selection2");
-	
-	texture2.addEventListener("click", function(){
-				
-		// Getting the selection
-		
-		var p = texture2.selectedIndex;
-				
-		switch(p){
-			
-			case 0 : 
-				sceneModels[1].kAmbi = [ 0.21, 0.13, 0.05 ];
-				sceneModels[1].kDiff = [ 0.71, 0.43, 0.18 ];
-				sceneModels[1].kSpec = [ 0.39, 0.27, 0.17];
-				sceneModels[1].nPhong = 25.6;
-
-				break;
-			
-			case 1 :  
-				sceneModels[1].kAmbi = [ 0.25, 0.15, 0.06 ];
-				sceneModels[1].kDiff = [ 0.4, 0.24, 0.1 ];
-				sceneModels[1].kSpec = [ 0.77, 0.46, 0.20 ];
-				sceneModels[1].nPhong = 76.8;
-
-				break;
-
-			case 2 : 
-				sceneModels[1].kAmbi = [ 0.19, 0.07, 0.02 ];
-				sceneModels[1].kDiff = [ 0.7, 0.27, 0.08 ];
-				sceneModels[1].kSpec = [ 0.26, 0.14, 0.08 ];
-				sceneModels[1].nPhong = 12.8;
-
-				break;
-
-			case 3 : 
-				sceneModels[1].kAmbi = [ 0.23, 0.08, 0.03 ];
-				sceneModels[1].kDiff = [ 0.55, 0.21, 0.07 ];
-				sceneModels[1].kSpec = [ 0.58, 0.22, 0.07 ];
-				sceneModels[1].nPhong = 51.2;
-
-				break;
-
-			case 4 : 
-				sceneModels[1].kAmbi = [ 0.25, 0.25, 0.25 ];
-				sceneModels[1].kDiff = [ 0.4, 0.4, 0.4 ];
-				sceneModels[1].kSpec = [ 0.77, 0.77, 0.77 ];
-				sceneModels[1].nPhong = 76.8;
-
-				break;
-
-			case 5 : 
-				sceneModels[1].kAmbi = [ 0.33, 0.22, 0.03 ];
-				sceneModels[1].kDiff = [ 0.78, 0.57, 0.11 ];
-				sceneModels[1].kSpec = [ 0.99, 0.94, 0.81 ];
-				sceneModels[1].nPhong = 27.9;
-
-				break;
-
-			case 6 : 
-				sceneModels[1].kAmbi = [ 0.25, 0.20, 0.07 ];
-				sceneModels[1].kDiff = [ 0.75, 0.60, 0.23];
-				sceneModels[1].kSpec = [ 0.63, 0.56, 0.37 ];
-				sceneModels[1].nPhong = 51.2;
-
-				break;
-
-			case 7 : 
-				sceneModels[1].kAmbi = [ 0.25, 0.22, 0.06 ];
-				sceneModels[1].kDiff = [ 0.35, 0.31, 0.09 ];
-				sceneModels[1].kSpec = [ 0.80, 0.72, 0.21 ];
-				sceneModels[1].nPhong = 83.2;
-
-				break;
-
-			case 8 : 
-				sceneModels[1].kAmbi = [ 0.23, 0.23, 0.23 ];
-				sceneModels[1].kDiff = [ 0.28, 0.28, 0.28 ];
-				sceneModels[1].kSpec = [ 0.77, 0.77, 0.77 ];
-				sceneModels[1].nPhong = 89.6;
-
-				break;
-
-			case 9 : 
-				sceneModels[1].kAmbi = [ 0.3, 0.0, 0.0 ];
-				sceneModels[1].kDiff = [ 0.6, 0.0, 0.0 ];
-				sceneModels[1].kSpec = [ 0.8, 0.6, 0.6 ];
-				sceneModels[1].nPhong = 32.0;
-
-				break;
-
-			case 10 : 
-				sceneModels[1].kAmbi = [ 0.0, 0.0, 0.5 ];
-				sceneModels[1].kDiff = [ 0.0, 0.0, 1.0 ];
-				sceneModels[1].kSpec = [ 1.0, 1.0, 1.0 ];
-				sceneModels[1].nPhong = 125.0;
-
-				break;
-
-			case 11 : 
-				sceneModels[1].kAmbi = [ 0.1, 0.1, 0.1 ];
-				sceneModels[1].kDiff = [ 0.5, 0.5, 0.5 ];
-				sceneModels[1].kSpec = [ 0.7, 0.7, 0.7 ];
-				sceneModels[1].nPhong = 1.0;
-
-				break;
-
-		}
-		textures[1].kAmbi = sceneModels[1].kAmbi;
-		textures[1].kDiff = sceneModels[1].kDiff;
-		textures[1].kSpec = sceneModels[1].kSpec;
-		textures[1].nPhong = sceneModels[1].nPhong; 	
+		}  	
 	}); 
 
 	document.getElementById("change-Size").onclick = function(){
 		var x = document.getElementById("frm1");
 		
-		for (var i = 0; i < sceneModels.length; i++) {
-			if(x.elements[0].value<=0.3 && x.elements[0].value>=0.0) sceneModels[i].sx = x.elements[0].value;
-			if(x.elements[1].value<=0.3 && x.elements[1].value>=0.0) sceneModels[i].sy = x.elements[1].value;
-			if(x.elements[2].value<=0.3 && x.elements[2].value>=0.0) sceneModels[i].sz = x.elements[2].value;
-		}
-	}
-
-	document.getElementById("change-pos").onclick = function(){
-		var x = document.getElementById("frm2");
-		
-		for (var i = 0; i < lightSources.length; i++) {
-			if(x.elements[0].value<=10.0 && x.elements[0].value>=-10.0) lightSources[i].position[0] = x.elements[0].value;
-			if(x.elements[1].value<=10.0 && x.elements[1].value>=-10.0) lightSources[i].position[1] = x.elements[1].value;
-			if(x.elements[2].value<=10.0 && x.elements[2].value>=-10.0) lightSources[i].position[2] = x.elements[2].value;
-		}
-	}  
-
-	document.getElementById("orotx-button").onclick = function(){
-		
-		for (var i = 0; i <sceneModels.length; i++) {
-			if(sceneModels[i].rotXXOn) sceneModels[i].rotXXOn=false;
-			else sceneModels[i].rotXXOn = true;
-		}
-	};
-
-	document.getElementById("oroty-button").onclick = function(){
-		
-		for (var i = 0; i <sceneModels.length; i++) {	
-			if(sceneModels[i].rotYYOn) sceneModels[i].rotYYOn=false;
-			else sceneModels[i].rotYYOn = true;
-		}
-	};
-
-	document.getElementById("orotz-button").onclick = function(){
-		
-		for (var i = 0; i <sceneModels.length; i++) {
-			if(sceneModels[i].rotZZOn) sceneModels[i].rotZZOn=false;
-			else sceneModels[i].rotZZOn = true;
-		}
-	};  
-
-
-	document.getElementById("lrotx-button").onclick = function(){
-		
-		for (var i = 0; i <lightSources.length; i++) {
-			if(lightSources[i].rotXXOn) lightSources[i].rotXXOn=false;
-			else lightSources[i].rotXXOn = true;
-		}
-	};
-
-	document.getElementById("lroty-button").onclick = function(){
-		
-		for (var i = 0; i <lightSources.length; i++) {	
-			if(lightSources[i].rotYYOn) lightSources[i].rotYYOn=false;
-			else lightSources[i].rotYYOn = true;
-		}
-	};
-
-	document.getElementById("lrotz-button").onclick = function(){
-		
-		for (var i = 0; i <lightSources.length; i++) {
-			if(lightSources[i].rotZZOn) lightSources[i].rotZZOn=false;
-			else lightSources[i].rotZZOn = true;
-		}
+		if(x.elements[0].value<=3 && x.elements[0].value>=0) sx[indice] = x.elements[0].value/10;
+		if(x.elements[1].value<=3 && x.elements[1].value>=0) sy[indice] = x.elements[1].value/10;
+		if(x.elements[2].value<=3 && x.elements[2].value>=0) sz[indice] = x.elements[2].value/10;
 	};   
 
-	document.getElementById("cube-button").onclick = function(){
-				
-		// CUBE
-		var pos = -0.5;
-		for(var i = 0; i < sceneModels.length; i++ ){
-			sceneModels[i]=cubeModel();
+	document.getElementById("change-rep").onclick = function(){
+		var x = document.getElementById("frm2");
+		
+		textureCoords=[];
+		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftexturesn[indice] = x.elements[0].value;
+		if(x.elements[1].value<=5 && x.elements[1].value>=0.0) numberoftexturesm[indice] = x.elements[1].value;
 
-			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
-
-			sceneModels[i].tz = 0.0;
-
-			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
-
-			pos+= 1.0;
+		for (var i = 0; i < 8*facesnum[indice]; i++) {
+			textureCoords[i]=textureCoords2[i]*numberoftexturesn[indice];
+			i++;
+			textureCoords[i]=textureCoords2[i]*numberoftexturesm[indice];
 		}
+		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;	
+	}; 
 
-		for (var i = 0; i < sceneModels.length; i++) {
-		  	sceneModels[i].kAmbi = textures[i].kAmbi;
-			sceneModels[i].kDiff = textures[i].kDiff;
-			sceneModels[i].kSpec = textures[i].kSpec;
-			sceneModels[i].nPhong = textures[i].nPhong;
+	document.getElementById("text-file").onchange = function(){
+		var file = this.files[0];
+		webGLTexture[indice].image.src = file["name"];
+
+		luminance[indice] = false;
+	};
+
+	document.getElementById("link-src").onclick = function(){
+		var x = document.getElementById("frm3");
+		var url = "https://cors-anywhere.herokuapp.com/"+x.elements[0].value;
+		if ((new URL(url)).origin !== window.location.origin) {
+      		webGLTexture[indice].image.crossOrigin = "";
+    	}
+    	luminance[indice] = false;
+    	alphaflag = false;
+    	webGLTexture[indice].image.src = url;
+	};
+
+	document.getElementById("lum-button").onclick = function(){
+		console.log(luminance);
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		if(!luminance[indice]){
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
+			alphaflag[indice] = false;
+		}else{
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
 		}
+		luminance[indice] = !luminance[indice];
+	}
+
+	document.getElementById("alpha-button").onclick = function(){
+		/*if(!alphaflag[indice]){
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, gl.ALPHA, gl.UNSIGNED_BYTE, webGLTexture.image);
+			luminance[indice] = false;
+		}else{
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
+		}
+		alphaflag[indice] = !alphaflag[indice];*/
+	}
+
+
+	// Button events
+	
+	document.getElementById("rotx-button").onclick = function(){
+		
+		// Switching on / off
+		
+		if( rotationXX_ON[indice] ) {
 			
+			rotationXX_ON[indice] = 0;
+		}
+		else {
+		
+			rotationXX_ON[indice] = 1;
+		} 
+	
 	};     
 
-	document.getElementById("sphere-button").onclick = function(){
-				
-		// SPHERE
-		var pos = -0.5;
-		for(var i = 0; i < sceneModels.length; i++ ){
-			sceneModels[i]=sphereModel();
-
-			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
-
-			sceneModels[i].tz = 0.0;
-
-			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
-
-			pos+= 1.0;
-		}
-		for (var i = 0; i < sceneModels.length; i++) {
-		  	sceneModels[i].kAmbi = textures[i].kAmbi;
-			sceneModels[i].kDiff = textures[i].kDiff;
-			sceneModels[i].kSpec = textures[i].kSpec;
-			sceneModels[i].nPhong = textures[i].nPhong;
-		}
-	};      
-
-	document.getElementById("rectangle-button").onclick = function(){
-				
-		// RECTANGLE
-		var pos = -0.5;
-		for(var i = 0; i < sceneModels.length; i++ ){
-			sceneModels[i]=cubeModel();
-
-			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
-
-			sceneModels[i].tz = 0.0;
-
-			sceneModels[i].sx = 0.35; sceneModels[i].sy = sceneModels[i].sz = 0.25;
+	document.getElementById("roty-button").onclick = function(){
 		
-			pos+= 1.0;
+		// Switching on / off
+		
+		if( rotationYY_ON[indice] ) {
+			
+			rotationYY_ON[indice] = 0;
 		}
-		for (var i = 0; i < sceneModels.length; i++) {
-		  	sceneModels[i].kAmbi = textures[i].kAmbi;
-			sceneModels[i].kDiff = textures[i].kDiff;
-			sceneModels[i].kSpec = textures[i].kSpec;
-			sceneModels[i].nPhong = textures[i].nPhong;
+		else {
+			
+			rotationYY_ON[indice] = 1;
+		}  
+	};     
+
+	document.getElementById("rotz-button").onclick = function(){
+		
+		// Switching on / off
+		
+		if( rotationZZ_ON[indice] ) {
+			
+			rotationZZ_ON[indice] = 0;
 		}
-	};      
+		else {
+			
+			rotationZZ_ON[indice] = 1;
+		}  
+	};
 
-	document.getElementById("tetrahedron-button").onclick = function(){
-				
-		// TETRAHEDRON
-		var pos = -0.5;
-		for(var i = 0; i < sceneModels.length; i++ ){
-			sceneModels[i]=tetrahedronModel();
-
-			sceneModels[i].tx = pos; sceneModels[i].ty = 0.0;
-
-			sceneModels[i].tz = 0.0;
-
-			sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = 0.25;
-
-			pos+= 1.0;
-		}
-		for (var i = 0; i < sceneModels.length; i++) {
-		  	sceneModels[i].kAmbi = textures[i].kAmbi;
-			sceneModels[i].kDiff = textures[i].kDiff;
-			sceneModels[i].kSpec = textures[i].kSpec;
-			sceneModels[i].nPhong = textures[i].nPhong;
-		}
-		  	
-	};      
- 
-
-
+	document.getElementById("blend-button").onclick = function(){
 	   
+
+		if(!blendisOn[indice]){
+	    	blendisOn[indice] = true;
+
+	    }else{
+	    	blendisOn[indice] = false;
+	    }
+	};
+
+	document.getElementById("repeath-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	//horizontal
+
+	}
+
+	document.getElementById("clamph-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);	//horizontal
+
+	}
+
+	document.getElementById("mirrorh-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);	//horizontal
+
+	}
+
+	document.getElementById("repeatv-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);	//vertical
+
+	}
+
+	document.getElementById("clampv-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);	//vertical
+
+	}
+
+	document.getElementById("mirrorv-button").onclick = function(){
+		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);	//vertical
+
+	}
+
+	var repetition = document.getElementById("repetition-selection");
+	
+	repetition.addEventListener("click", function(){
+				
+		// Getting the selection
+		
+		var p = repetition.selectedIndex;
+
+		textureCoords = [];
+				
+		switch(p){
+			
+			case 0 : 
+					facesnum[indice]=1;
+					for (var i = 0; i < 8; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}
+				break;
+			
+			case 1 : 
+					facesnum[indice]=2;
+					for (var i = 0; i < 16; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}	
+				break;
+
+			case 2 : 
+					facesnum[indice]=3;
+					for (var i = 0; i < 24; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}
+				break;
+
+			case 3 : 
+					facesnum[indice]=4;
+					for (var i = 0; i < 32; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}	
+				break;
+
+			case 4 : 
+					facesnum[indice]=5;
+					for (var i = 0; i < 40; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}
+				break;
+
+			case 5 : 
+					facesnum[indice]=6;
+					for (var i = 0; i < 48; i++) {
+						textureCoords[i] = textureCoords2[i]*numberoftexturesn[indice];
+						i++;
+						textureCoords[i] = textureCoords2[i]*numberoftexturesm[indice];
+					}
+
+				break;
+		}  	
+		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;	
+	});
+
+	document.getElementById("reset-button").onclick = function(){
+		// The initial values
+
+		tx = 0.0;
+
+		ty = 0.0;
+
+		tz = 0.0;
+
+		angleXX[indice] = 0.0;
+
+		angleYY[indice] = 0.0;
+
+		angleZZ[indice] = 0.0;
+
+		sx[indice] = 0.25;
+
+		sy[indice] = 0.25;
+
+		sz[indice] = 0.25;
+		//xx
+		rotationXX_ON[indice] = 0;
+		
+		rotationXX_DIR = 1;
+		
+		rotationXX_SPEED = 1;
+		//yy
+		rotationYY_ON[indice] = 0;
+		
+		rotationYY_DIR = 1;
+		
+		rotationYY_SPEED = 1;
+		//zz
+		rotationZZ_ON[indice] = 0;
+		
+		rotationZZ_DIR= 1;
+		
+		rotationZZ_SPEED= 1;
+
+		numberoftextures = 1;
+
+		facesnum[indice] = 6;
+
+		textureCoords = textureCoords2;
+
+		gl.disable(gl.BLEND);
+
+	    gl.enable( gl.DEPTH_TEST );
+
+	    blendisOn[indice] = false;
+
+	    luminance[indice] = false;
+
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);	//vertical
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	//horizontal
+
+		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
+	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;
+
+	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[0].image);
+
+	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[1].image);
+	};
 }
 
 //----------------------------------------------------------------------------
 //
 // WebGL Initialization
-//	
+//
 
 function initWebGL( canvas ) {
 	try {
@@ -1054,22 +1057,12 @@ function initWebGL( canvas ) {
 		
 		primitiveType = gl.TRIANGLES;
 		
-		// DEFAULT: Face culling is DISABLED
+		// DEFAULT: The Depth-Buffer is DISABLED
 		
-		// Enable FACE CULLING
-		
-		gl.enable( gl.CULL_FACE );
-		
-		// DEFAULT: The BACK FACE is culled!!
-		
-		// The next instruction is not needed...
-		
-		gl.cullFace( gl.BACK );
-		
-		// Enable DEPTH-TEST
+		// Enable it !
 		
 		gl.enable( gl.DEPTH_TEST );
-        
+		
 	} catch (e) {
 	}
 	if (!gl) {
@@ -1082,12 +1075,16 @@ function initWebGL( canvas ) {
 function runWebGL() {
 	
 	var canvas = document.getElementById("my-canvas");
-	
+		
 	initWebGL( canvas );
 
 	shaderProgram = initShaders( gl );
 	
-	setEventListeners(canvas);
+	setEventListeners( canvas );
+	
+	initBuffers();
+	
+	initTexture();
 	
 	tick();		// A timer controls the rendering / animation    
 

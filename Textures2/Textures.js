@@ -729,7 +729,7 @@ function setEventListeners( canvas ){
 		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftexturesn[indice] = x.elements[0].value;
 		if(x.elements[1].value<=5 && x.elements[1].value>=0.0) numberoftexturesm[indice] = x.elements[1].value;
 
-		for (var i = 0; i < 8*facesnum; i++) {
+		for (var i = 0; i < 8*facesnum[indice]; i++) {
 			textureCoords[i]=textureCoords2[i]*numberoftexturesn[indice];
 			i++;
 			textureCoords[i]=textureCoords2[i]*numberoftexturesm[indice];
@@ -737,15 +737,15 @@ function setEventListeners( canvas ){
 		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
 	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
 	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-	    cubeVertexTextureCoordBuffer.itemSize = 2;
-	    cubeVertexTextureCoordBuffer.numItems = 24;	
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;	
 	}; 
 
 	document.getElementById("text-file").onchange = function(){
 		var file = this.files[0];
 		webGLTexture[indice].image.src = file["name"];
 
-		luminance = false;
+		luminance[indice] = false;
 	};
 
 	document.getElementById("link-src").onclick = function(){
@@ -754,12 +754,13 @@ function setEventListeners( canvas ){
 		if ((new URL(url)).origin !== window.location.origin) {
       		webGLTexture[indice].image.crossOrigin = "";
     	}
-    	luminance = false;
+    	luminance[indice] = false;
     	alphaflag = false;
     	webGLTexture[indice].image.src = url;
 	};
 
 	document.getElementById("lum-button").onclick = function(){
+		console.log(luminance);
 		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
 		if(!luminance[indice]){
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
@@ -827,7 +828,11 @@ function setEventListeners( canvas ){
 	};
 
 	document.getElementById("blend-button").onclick = function(){
+	    
+	    console.log(blendisOn);
+
 		if(!blendisOn[indice]){
+
 	    	gl.disable( gl.DEPTH_TEST );
 
 	    	gl.enable( gl.BLEND );
@@ -835,6 +840,7 @@ function setEventListeners( canvas ){
 	    	blendisOn[indice] = true;
 
 	    }else{
+
 	    	gl.disable(gl.BLEND);
 
 	    	gl.enable( gl.DEPTH_TEST );
@@ -988,7 +994,7 @@ function setEventListeners( canvas ){
 
 		numberoftextures = 1;
 
-		facesnum = 6;
+		facesnum[indice] = 6;
 
 		textureCoords = textureCoords2;
 
@@ -996,9 +1002,9 @@ function setEventListeners( canvas ){
 
 	    gl.enable( gl.DEPTH_TEST );
 
-	    blendisOn = false;
+	    blendisOn[indice] = false;
 
-	    luminance = false;
+	    luminance[indice] = false;
 
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);	//vertical
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	//horizontal
@@ -1006,8 +1012,8 @@ function setEventListeners( canvas ){
 		cubeVertexTextureCoordBuffer[indice] = gl.createBuffer();
 	    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer[indice]);
 	 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-	   cubeVertexTextureCoordBuffer[indice].itemSize = 2;
-	   cubeVertexTextureCoordBuffer[indice].numItems = 24;
+	    cubeVertexTextureCoordBuffer[indice].itemSize = 2;
+	    cubeVertexTextureCoordBuffer[indice].numItems = 24;
 
 	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[0].image);
 

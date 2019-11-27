@@ -56,7 +56,9 @@ angleYY[1] = 0.0;
 angleZZ[1] = 0.0;
 
 // The scaling factors
-var sx=sz=sy=[];
+var sx = [];
+var sz = [];
+var sy = [];
 
 sx[0] = 0.25;
 
@@ -563,22 +565,24 @@ function handleKeys() {
 	if (currentlyPressedKeys[33]) {
 		
 		// Page Up
-		
-		sx[indice] *= 0.9;
-		
-		sz[indice] *= 0.9;
+		if(sx[indice] >= 0.05 && sz[indice] >= 0.05 && sz[indice] >= 0.05){
+			sx[indice] *= 0.9;
+			
+			sz[indice] *= 0.9;
 
-		sy[indice] *= 0.9;
+			sy[indice] *= 0.9;
+		}
 	}
 	if (currentlyPressedKeys[34]) {
 		
 		// Page Down
-		
-		sx[indice]*= 1.1;
-		
-		sz[indice]*= 1.1;
+		if(sx[indice] <= 0.3 && sz[indice] <= 0.3 && sz[indice] <= 0.3){
+			sx[indice]*= 1.1;
+			
+			sz[indice]*= 1.1;
 
-		sy[indice] *= 1.1;
+			sy[indice] *= 1.1;
+		}
 	
 	}if(currentlyPressedKeys[37]){
 		document.getElementById("id-selection").value="Left Cube";
@@ -787,7 +791,6 @@ function setEventListeners( canvas ){
 	};
 
 	document.getElementById("lum-button").onclick = function(){
-		console.log(luminance);
 		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
 		if(!luminance[indice]){
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
@@ -796,16 +799,6 @@ function setEventListeners( canvas ){
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
 		}
 		luminance[indice] = !luminance[indice];
-	}
-
-	document.getElementById("alpha-button").onclick = function(){
-		/*if(!alphaflag[indice]){
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, gl.ALPHA, gl.UNSIGNED_BYTE, webGLTexture.image);
-			luminance[indice] = false;
-		}else{
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture.image);
-		}
-		alphaflag[indice] = !alphaflag[indice];*/
 	}
 
 

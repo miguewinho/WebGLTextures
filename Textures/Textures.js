@@ -56,9 +56,9 @@ angleYY[1] = 0.0;
 angleZZ[1] = 0.0;
 
 // The scaling factors
-var sx = [];
-var sz = [];
-var sy = [];
+var sx=[];
+var sz=[];
+var sy=[];
 
 sx[0] = 0.25;
 
@@ -503,7 +503,26 @@ function drawScene() {
 
 	           
 }
-
+/*
+function loadImages(urls, callback) {
+  var images = [];
+  var imagesToLoad = urls.length;
+ 
+  // Called each time an image finished loading.
+  var onImageLoad = function() {
+    --imagesToLoad;
+    // If all the images are loaded call the callback.
+    if (imagesToLoad == 0) {
+      callback(images);
+    }
+  };
+ 
+  for (var ii = 0; ii < imagesToLoad; ++ii) {
+    var image = loadImage(urls[ii], onImageLoad);
+    images.push(image);
+  }
+}
+*/
 //----------------------------------------------------------------------------
 //
 //  NEW --- Animation
@@ -603,6 +622,21 @@ function handleKeys() {
 
 // Adapted from www.learningwebgl.com
 
+function setRectangle(gl, x, y, width, height) {
+  
+  var x1 = x;
+  var x2 = x + width;
+  var y1 = y;
+  var y2 = y + height;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+     x1, y1,
+     x2, y1,
+     x1, y2,
+     x1, y2,
+     x2, y1,
+     x2, y2,
+  ]), gl.STATIC_DRAW);
+}
 
 var mouseDown = false;
 
@@ -650,9 +684,26 @@ function handleMouseMove(event) {
     lastMouseY = newY;
   }
 //----------------------------------------------------------------------------
-
+/*
+function setRectangle(gl, x, y, width, height) {
+  var x1 = x;
+  var x2 = x + width;
+  var y1 = y;
+  var y2 = y + height;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+     x1, y1,
+     x2, y1,
+     x1, y2,
+     x1, y2,
+     x2, y1,
+     x2, y2,
+  ]), gl.STATIC_DRAW);
+}
+function randomInt(range) {
+  return Math.floor(Math.random() * range);
+}
 // Timer
-
+*/
 function tick() {
 	
 	requestAnimFrame(tick);
@@ -680,7 +731,7 @@ function outputInfos(){
 
 //----------------------------------------------------------------------------
 
-function setEventListeners( canvas ){
+function setEventListeners( canvas, images ){
 	
 	// NEW ---Handling the mouse
 	
@@ -1086,7 +1137,7 @@ function runWebGL() {
 
 	shaderProgram = initShaders( gl );
 	
-	setEventListeners( canvas );
+	setEventListeners(canvas );
 	
 	initBuffers();
 	

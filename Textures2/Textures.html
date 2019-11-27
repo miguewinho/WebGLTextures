@@ -23,22 +23,7 @@ J. Madeira - November 2015
 The vertex and fragment shaders.
 
 -->
-<script id="2d-fragment-shader" type="x-shader/x-fragment">
-	precision mediump float;
-	 
-	// our textures
-	uniform sampler2D u_image0;
-	uniform sampler2D u_image1;
-	 
-	// the texCoords passed in from the vertex shader.
-	varying vec2 v_texCoord;
-	 
-	void main() {
-	   vec4 color0 = texture2D(u_image0, v_texCoord);
-	   vec4 color1 = texture2D(u_image1, v_texCoord);
-	   gl_FragColor = color0 * color1;
-	}
-</script>
+
 <script id="shader-vs" type="x-shader/x-vertex">
 	
     attribute vec3 aVertexPosition;
@@ -108,22 +93,28 @@ The vertex and fragment shaders.
 
 <body onload="runWebGL();">
 	
-	<div style="text-align: center;">	
+	<div style="text-align: center; width: 100% ">	
 		
-		<div style="margin-left: 100px;text-align:center;float:left;font-size: 30px;">
-			Texture Manipulation Menu<br>
-			<p style="font-size: 20px ">Choose Objects using Left and Right Arrow.</p>
-			<input  type='text' style="width:25%" disabled  id="id-selection" value="Left cube"></input><br><br>
-			<canvas  id="my-canvas" style="border:1px solid #000000;" width="800" height="700"></canvas>
+		<div style="text-align:center;width:50% ;float:left;font-size: 30px;">
+			<p>Texture Manipulation Menu</p>	
+			<input  type='text' style="width:25%" disabled  id="id-selection" ></input>
+
+			<canvas  id="my-canvas" style="border:1px solid #000000;margin-left: 100px" width="800" height="700"></canvas>
+			<p style="font-size: 15px ">Press L to chose the left object or R to the right</p>
+
 		</div>
 		
-        <div style="font-size: 22px;">
-				Page Up zooms out and Page Down Zooms up.<br>
-				<p>Projection Type:
-				    <select id="projection-selection" >
-						<option value="0">Orthogonal Projection</option>
-						<option value="1">Perspective Projection</option>
-			        </select>
+        <div style="width:70%;font-size: 22px">				
+			<p>Press Page Up/Down for Zoom Out/In.</p>
+				
+				<p>Choose the <b>projection type</b>:
+				
+		        <select id="projection-selection" >
+					<option value="0">Orthogonal Projection</option>
+					<option value="1">Perspective Projection</option>
+		        </select>
+
+		       
 		        </p>
 
 				<p>
@@ -154,12 +145,12 @@ The vertex and fragment shaders.
 			  			Size X: <input type="text"><br>
 			  			Size Y: <input type="text"><br>
 			  			Size Z: <input type="text"><br>
-			  			Sizes must be within [0.0 , 0.3].<br>
+			  			Sizes must be within [0.0 , 0.5].<br>
 			  		</form>
 			  		<button id="change-Size">Submit</button>
 				</p>
 
-				<p>Number of Faces filled with Texture: 
+				<p>
 					<select id="repetition-selection">
 						<option value="0">1</option>
 						<option value="1">2</option>
@@ -191,6 +182,7 @@ The vertex and fragment shaders.
 
 				<p>
 					<button id="lum-button">Luminance On/Off</button>
+					<button id="alpha-button">Alpha On/Off</button>
 					<button id="blend-button">Blending On/Off</button><br><br>
 					<button id="reset-button" style="background-color: #4CAF50;padding: 8px 30px; color: white;">RESET</button>
 				</p>

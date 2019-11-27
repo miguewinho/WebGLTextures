@@ -106,7 +106,7 @@ var primitiveType = null;
  
 // To allow choosing the projection type
 
-var projectionType = [0,0];
+var projectionType = 0;
 
 //Blending Flag
 
@@ -403,12 +403,14 @@ function drawModel( angleXX, angleYY, angleZZ,
     	
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
+    	cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	// NEW --- Textures
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, texturecoordbuffer);
-    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texturecoordbuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 
+    	texturecoordbuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -448,7 +450,7 @@ function drawScene() {
 	
 	// NEW --- Computing the Projection Matrix
 	
-	if( projectionType[indice] == 0 ) {
+	if( projectionType == 0 ) {
 		
 		// For now, the default orthogonal view volume
 		
@@ -457,12 +459,6 @@ function drawScene() {
 		tz = 0;
 	}
 	else {	
-
-		// A standard view volume.
-		
-		// Viewer is at (0,0,0)
-		
-		// Ensure that the model is "inside" the view volume
 		
 		pMatrix = perspective( 45, 1, 0.05, 10 );
 		
@@ -475,14 +471,6 @@ function drawScene() {
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-	
-	// NEW --- Instantianting the same model more than once !!
-	
-	// And with diferent transformation parameters !!
-	
-	// Call the drawModel function !!
-	
-	// Instance 1 --- RIGHT TOP
 
 	if(blendisOn[0]){
 		gl.enable(gl.BLEND);
@@ -533,19 +521,34 @@ function animate() {
 		
 		var elapsed = timeNow - lastTime;
 		
-		if( rotationXX_ON[indice] ) {
+		if( rotationXX_ON[0] ) {
 
-			angleXX[indice] += rotationXX_DIR * rotationXX_SPEED* (90 * elapsed) / 1000.0;
+			angleXX[0] += rotationXX_DIR * rotationXX_SPEED* (90 * elapsed) / 1000.0;
 	    }
 
-		if( rotationYY_ON[indice] ) {
+		if( rotationYY_ON[0] ) {
 
-			angleYY[indice] += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
+			angleYY[0] += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
 	    }
 
-		if( rotationZZ_ON[indice] ) {
+		if( rotationZZ_ON[0] ) {
 
-			angleZZ[indice] += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
+			angleZZ[0] += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
+	    }
+
+	    if( rotationXX_ON[1] ) {
+
+			angleXX[1] += rotationXX_DIR * rotationXX_SPEED* (90 * elapsed) / 1000.0;
+	    }
+
+		if( rotationYY_ON[1] ) {
+
+			angleYY[1] += rotationYY_DIR * rotationYY_SPEED * (90 * elapsed) / 1000.0;
+	    }
+
+		if( rotationZZ_ON[1] ) {
+
+			angleZZ[1] += rotationZZ_DIR * rotationZZ_SPEED * (90 * elapsed) / 1000.0;
 	    }
 	}
 	
@@ -719,10 +722,10 @@ function setEventListeners( canvas ){
 				
 		switch(p){
 			
-			case 0 : projectionType[indice] = 0;
+			case 0 : projectionType = 0;
 				break;
 			
-			case 1 : projectionType[indice] = 1;
+			case 1 : projectionType = 1;
 				break;
 		}  	
 	}); 
@@ -793,10 +796,12 @@ function setEventListeners( canvas ){
 	document.getElementById("lum-button").onclick = function(){
 		gl.bindTexture(gl.TEXTURE_2D, webGLTexture[indice]);
 		if(!luminance[indice]){
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, 
+				gl.UNSIGNED_BYTE, webGLTexture[indice].image);
 			alphaflag[indice] = false;
 		}else{
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, webGLTexture[indice].image);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, 
+				gl.UNSIGNED_BYTE, webGLTexture[indice].image);
 		}
 		luminance[indice] = !luminance[indice];
 	}

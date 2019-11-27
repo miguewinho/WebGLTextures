@@ -6,17 +6,15 @@
 	
 <!--
 
-WebGL_example_NEW_GPU_per_vertex.html
+WebGL_example_28.html
 
-Phong Illumination Model on the GPU - Per vertex shading - Several light sources
+Applying a texture
 
-Scene made up of different models, with different features
-
-J. Madeira - November 2017 + November 2018
+J. Madeira - November 2015
 
 -->
 	
-<title>Textures Menu</title>
+<title>Textures Manipulation</title>
 
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
@@ -24,186 +22,56 @@ J. Madeira - November 2017 + November 2018
 
 The vertex and fragment shaders.
 
-NEW VERTEX SHADER!
-
-The fragment shader is the same simple one.
-
 -->
 
 <script id="shader-vs" type="x-shader/x-vertex">
 	
-    attribute vec3 vPosition;
+    attribute vec3 aVertexPosition;
 
+    attribute vec2 aTextureCoord;
+    
     uniform mat4 uMVMatrix;
 
     uniform mat4 uPMatrix;
-    
-    varying vec4 fColor;
-    
-    // For the Phong Illumination Model - NEW
-    
-    attribute vec3 vNormal;
-    
-    uniform vec4 viewerPosition;
-	
-    // NEW - Array of lights
-    
-	#define MAX_LIGHTS 5
 
-	uniform int numLights;
-
-	uniform struct Light {
-		
-		int isOn;
-	
-		vec4 position;
-   
-		mat4 lightSourceMatrix; // for animation
-
-		vec3 intensities; //a.k.a the color of the light
-   
-		vec3 ambientIntensities;
-			
-	} allLights[MAX_LIGHTS];
+    varying vec2 vTextureCoord;
     
-    // NEW - The material properties
-
-	uniform vec3 k_ambient;
-	
-	uniform vec3 k_diffuse;
-	
-	uniform vec3 k_specular;
-	
-    uniform float shininess;
-        
     void main(void) {
 		
-		// To allow seeing the points drawn
-		
-		gl_PointSize = 5.0;
-		
-		// Just converting the (x,y,z) vertices to Homogeneous Coord.
-		
-		// And multiplying by the Projection and the Model-View matrix
-		
-        gl_Position = uPMatrix * uMVMatrix * vec4(vPosition, 1.0);
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         
-        // Phong Illumination Model
+        // For the fragment shader
         
-        // pos is vertex position after applying the global transformation
-    
-        vec3 pos = (uMVMatrix * vec4(vPosition, 1.0)).xyz;
-    
-		// NEW - ITERATING THROUGH ALL LIGHT SOURCES
-
-		fColor = vec4(0.0, 0.0, 0.0, 0.0);	// To add all illumination components
-		 
-		// THE FOR LOOP NEEDS A STOPPING CONSTANT VALUE
-		
-		for( int i = 0; i < MAX_LIGHTS; i++ ) 
-		{
-			if( i == numLights )
-			
-				break;
-				
-			// Switched off ?
-			
-			if( allLights[i].isOn == 0 )
-			
-				continue;
-				
-			// Ambient component is constant for each light source
-        
-			vec4 ambient = vec4( k_ambient * allLights[i].ambientIntensities, 1.0 );
-	   
-			fColor += ambient;
-		
-           // vector from vertex position to light source
-    
-           vec3 L;
-        
-           // check for directional light
-    
-           if(allLights[i].position.w == 0.0) 
-        
-				L = normalize( (allLights[i].lightSourceMatrix * allLights[i].position).xyz );
-        
-           else 
-        
-			    L = normalize( (allLights[i].lightSourceMatrix * allLights[i].position).xyz - pos );
-			
-		   // Vector from the vertex position to the eye
-		
-		   vec3 E;
-		
-		   // The viewer is at the origin or at an indefinite distance
-		   // on the ZZ axis
-		
-		   if(viewerPosition.w == 1.0) 
-        
-			   // At the origin
-			
-			   E = -normalize( pos );
-        
-           else 
-        
-			   // On the ZZ axis
-			
-			   E = vec3(0,0,1);
-		    
-           // Halfway vector
-    
-           vec3 H = normalize( L + E );
-
-           // Transform vertex normal into eye coordinates
-    
-           vec4 N = normalize( uMVMatrix * vec4(vNormal, 0.0));
-
-           // Compute terms in the illumination equation
-        
-		   // Diffuse component 
-		
-		   float dotProductLN = L[0] * N[0] + L[1] * N[1] + L[2] * N[2]; 
-		
-           float cosNL = max( dotProductLN, 0.0 );
-    
-           vec4  diffuse = vec4( k_diffuse * cosNL * allLights[i].intensities, 1.0 );
-        
-           // Specular component
-
-           float dotProductNH = N[0] * H[0] + N[1] * H[1] + N[2] * H[2]; 
-		
-		   float cosNH = pow( max( dotProductNH, 0.0 ), shininess );
-    
-           vec4  specular = vec4( k_specular * cosNH * allLights[i].intensities, 1.0 );
-    
-           if( dotProductLN < 0.0 ) {
-	
-		      specular = vec4(0.0, 0.0, 0.0, 1.0);
-           } 
-
-		   // Adding the components
-		
-           fColor += diffuse + specular;
-	   }
-	}
-    
+        vTextureCoord = aTextureCoord;
+    }
 </script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
+	
+    precision mediump float;
 
-	precision mediump float;
-	
-	varying vec4 fColor;
-	
-	void main(void) {
+    varying vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
+
+    void main(void) {
 		
-		// Using the passed vertex color
-		
-		gl_FragColor = fColor;
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }
+    
+</script>
+<!-- Buttons style -->
+<style >
+	.projection-selection{
+		position: absolute;
+        top:452px;
+        left: 85px    
 	}
 
-</script>
+</style> 
+	
+
+
 
 <!-- The JS files -->
 
@@ -215,18 +83,6 @@ The fragment shader is the same simple one.
 
 <script type="text/javascript" src="maths.js"></script>
 
-<!-- Processing triangle mesh models -->
-
-<script type="text/javascript" src="models.js"></script>
-
-<!-- Creating the light sources -->
-
-<script type="text/javascript" src="lightSources.js"></script>
-
-<!-- Creating the scene models -->
-
-<script type="text/javascript" src="sceneModels.js"></script>
-
 <!-- WebGL code -->
 
 <script type="text/javascript" src="initShaders.js"></script>
@@ -236,129 +92,102 @@ The fragment shader is the same simple one.
 </head>
 
 <body onload="runWebGL();">
-
-	<div style="text-align: center">
+	
+	<div style="text-align: center; width: 100% ">	
 		
-		<p>Model With LightSources and Texture Menu</p>
+		<div style="text-align:center;width:50% ;float:left;font-size: 30px;">
+			<p>Texture Manipulation Menu</p>	
+			<select id="id-selection" style="width:25%;font-size:15px">
+					<option value="0">Left Cube</option>
+					<option value="1">Right Cube</option>
+		    </select>
+
+			<canvas  id="my-canvas" style="border:1px solid #000000;margin-left: 100px" width="800" height="800"></canvas>
+		</div>
 		
-		<canvas id="my-canvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
-		
-		<!-- NEW --- To show the number of frames per second -->
-		
-		<p id="fps"> fps: </p>
+        <div style="width:70%;font-size: 22px">				
+			<p>Press Page Up/Down for Zoom Out/In.</p>
+				
+				<p>Choose the <b>projection type</b>:
+				
+		        <select id="projection-selection" >
+					<option value="0">Orthogonal Projection</option>
+					<option value="1">Perspective Projection</option>
+		        </select>
 
-		<div>
-			<p style="text-align: left">Choose the <b>texture type</b>:
-		
-	        <select id="texture-mode-selection1">
-				<option value="0">Bronze</option>
-				<option value="1">Bronze Polido</option>
-				<option value="2">Cobre</option>
-				<option value="3">Cobre Polido</option>
-				<option value="4">Cromio</option>
-				<option value="5">Latao</option>
-				<option value="6">Ouro</option>
-				<option value="7">Ouro Polido</option>
-				<option value="8">Prata Polida</option>
-				<option value="9">Plastico Vermelho</option>
-				<option value="10">Azul Muito Brilhante</option>
-				<option value="11">Cinzento</option>
-	        </select>
+		       
+		        </p>
 
-	    	</p>
+				<p>
+				Object Rotation<br>
+				<button id="rotx-button">Rotation X On/Off</button>
+				<button id="roty-button">Rotation Y On/Off</button>
+				<button id="rotz-button">Rotation Z On/Off</button>
+				
+				</p>
 
-	    	<p style="text-align: right">Choose the <b>texture type</b>:
-		
-	        <select id="texture-mode-selection2">
-				<option value="0">Bronze</option>
-				<option value="1">Bronze Polido</option>
-				<option value="2">Cobre</option>
-				<option value="3">Cobre Polido</option>
-				<option value="4">Cromio</option>
-				<option value="5">Latao</option>
-				<option value="6">Ouro</option>
-				<option value="7">Ouro Polido</option>
-				<option value="8">Prata Polida</option>
-				<option value="9">Plastico Vermelho</option>
-				<option value="10">Azul Muito Brilhante</option>
-				<option value="11">Cinzento</option>
-	        </select>
+				<p>Read a image from <b>file</b>:
+				
+				<input type="file" id="text-file" name="file">
+				
+				</p>
 
-	    	</p>
-	    </div>
+				<p>
+					<form id="frm3">
+						Read a image from <b>Link</b>:
+						<input type="text">
+					</form>
+					<button id="link-src">Submit</button>
+				</p>
 
-		<p>Choose the <b>rendering mode</b>:
-		
-        <select id="rendering-mode-selection">
-			<option value="0">Filled Triangles</option>
-			<option value="1">Wireframe</option>
-			<option value="2">Vertices</option>
-        </select>
+				<p>
+					<form id="frm1">
+						Object Sizes<br>
+			  			Size X: <input type="text"><br>
+			  			Size Y: <input type="text"><br>
+			  			Size Z: <input type="text"><br>
+			  			Sizes must be within [0.0 , 0.3].<br>
+			  		</form>
+			  		<button id="change-Size">Submit</button>
+				</p>
 
-    	</p>
-		
-		<p>Choose the <b>projection type</b>:
-		
-        <select id="projection-selection">
-			<option value="0">Orthogonal Projection</option>
-			<option value="1">Perspective Projection</option>
-        </select>
-        
-        </p>
+				<p>
+					<select id="repetition-selection">
+						<option value="0">1</option>
+						<option value="1">2</option>
+						<option value="2">3</option>
+						<option value="3">4</option>
+						<option value="4">5</option>
+						<option value="5">6</option>
+		        	</select>
+		        </p>
 
-        <p>
-		
-		<button id="cube-button">Cube</button>
-		<button id="sphere-button">Sphere</button>
-		<button id="rectangle-button">Rectangle</button>
-		<button id="tetrahedron-button">Tetrahedron</button>
-		
-		</p>
+		        <p>
+					<form id="frm2">
+						Number of images per face (NxM)<br>
+			  			N: <input type="text"><br>
+			  			M: <input type="text"><br>
+			  			Amounts must be within [0 , 5].<br>
+			  		</form>
+			  		<button id="change-rep">Submit</button>
+				</p>
 
-		<p>
-		Object Rotation<br>
-		<button id="orotx-button">Rotation X On/Off</button>
-		<button id="oroty-button">Rotation Y On/Off</button>
-		<button id="orotz-button">Rotation Z On/Off</button>
-		
-		</p>
+				<p>
+					<button id="repeath-button">Horizontal Repetition</button>
+					<button id="clamph-button">Horizontal Clamp to Edge</button>
+					<button id="mirrorh-button">Horizontal Mirror</button><br>
+					<button id="repeatv-button">Vertical Repetition</button>
+					<button id="clampv-button">Vertical Clamp to Edge</button>
+					<button id="mirrorv-button">Vertical Mirror</button><br>
+				</p>
 
-		<p>
-		Light Source Rotation<br>
-		<button id="lrotx-button">Rotation X On/Off</button>
-		<button id="lroty-button">Rotation Y On/Off</button>
-		<button id="lrotz-button">Rotation Z On/Off</button>
-		
-		</p>
-
-		<p>
-			<form id="frm1">
-				Object Sizes<br>
-	  			Size X: <input type="text"><br>
-	  			Size Y: <input type="text"><br>
-	  			Size Z: <input type="text"><br>
-	  			Sizes must be within [0.0 , 0.3].<br>
-	  			<br>
-	  		</form>
-	  		<button id="change-Size">Submit</button>
-		</p> 
-
-		<p>
-			<form id="frm2">
-				LightSource Position<br>
-	  			Pos X: <input type="text"><br>
-	  			Pos Y: <input type="text"><br>
-	  			Pos Z: <input type="text"><br>
-	  			Positions must be within [-10.0 , 10.0].<br>
-	  			<br>
-	  		</form>
-	  		<button id="change-pos">Submit</button>
-		</p> 
-
-
-        				
-	</div>
-
-</body>
-
+				<p>
+					<button id="lum-button">Luminance On/Off</button>
+					<button id="alpha-button">Alpha On/Off</button>
+					<button id="blend-button">Blending On/Off</button><br><br>
+					<button id="reset-button" style="background-color: #4CAF50;padding: 8px 30px; color: white;">RESET</button>
+				</p>
+			<div>				
+		</div>
+	</body>
 </html>

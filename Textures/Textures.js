@@ -751,17 +751,17 @@ function setEventListeners( canvas ){
 	document.getElementById("change-Size").onclick = function(){
 		var x = document.getElementById("frm1");
 		
-		if(x.elements[0].value<=3 && x.elements[0].value>=0) sx[indice] = x.elements[0].value/10;
-		if(x.elements[1].value<=3 && x.elements[1].value>=0) sy[indice] = x.elements[1].value/10;
-		if(x.elements[2].value<=3 && x.elements[2].value>=0) sz[indice] = x.elements[2].value/10;
+		if(x.elements[0].value<=3 && x.elements[0].value>=1) sx[indice] = x.elements[0].value/10;
+		if(x.elements[1].value<=3 && x.elements[1].value>=1) sy[indice] = x.elements[1].value/10;
+		if(x.elements[2].value<=3 && x.elements[2].value>=1) sz[indice] = x.elements[2].value/10;
 	};   
 
 	document.getElementById("change-rep").onclick = function(){
 		var x = document.getElementById("frm2");
 		
 		textureCoords=[];
-		if(x.elements[0].value<=5 && x.elements[0].value>=0.0) numberoftexturesn[indice] = x.elements[0].value;
-		if(x.elements[1].value<=5 && x.elements[1].value>=0.0) numberoftexturesm[indice] = x.elements[1].value;
+		if(x.elements[0].value<=5 && x.elements[0].value>=1) numberoftexturesn[indice] = x.elements[0].value;
+		if(x.elements[1].value<=5 && x.elements[1].value>=1) numberoftexturesm[indice] = x.elements[1].value;
 
 		for (var i = 0; i < 8*facesnum[indice]; i++) {
 			textureCoords[i]=textureCoords2[i]*numberoftexturesn[indice];
